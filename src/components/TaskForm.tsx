@@ -1,7 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { TaskInput } from '@/types/task';
+interface TaskInput {
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed?: boolean;
+}
 
 interface TaskFormProps {
   onSubmit: (task: TaskInput) => Promise<void>;

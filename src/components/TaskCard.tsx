@@ -1,8 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskInput } from '@/types/task';
+import { LearningGoal } from '@/types/task';
 import TaskForm from './TaskForm';
+
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TaskInput {
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed?: boolean;
+}
 
 interface TaskCardProps {
   task: Task;

@@ -11,7 +11,22 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Task, TaskInput } from '@/types/task';
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TaskInput {
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed?: boolean;
+}
 
 const COLLECTION_NAME = 'tasks';
 
