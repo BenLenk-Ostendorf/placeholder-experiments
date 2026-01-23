@@ -24,7 +24,7 @@ export default function TrustAnalysis({ userRating }: TrustAnalysisProps) {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Do you trust AI to generate accurate and reliable text?
+          How often do you think an LLM produces the same answer for the same prompt?
         </h2>
       </div>
 
@@ -77,24 +77,6 @@ export default function TrustAnalysis({ userRating }: TrustAnalysisProps) {
         </div>
       </div>
 
-      {/* Insights */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-        <div className="flex gap-3">
-          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">Insight</p>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              {userRating >= 4 
-                ? "You're among the more trusting participants. Most people are cautiously optimistic about AI text generation."
-                : userRating === 3
-                ? "You're in the majority! Most participants share your neutral stance on AI trust."
-                : "You're more skeptical than most. Understanding how AI works may help build confidence in its capabilities."}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

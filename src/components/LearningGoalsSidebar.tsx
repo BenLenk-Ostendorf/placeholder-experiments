@@ -21,10 +21,11 @@ const learningGoals: LearningGoal[] = [
 interface LearningGoalsSidebarProps {
   onSelectGoal: (goal: LearningGoal) => void;
   selectedGoalId?: string;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export default function LearningGoalsSidebar({ onSelectGoal, selectedGoalId }: LearningGoalsSidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+export default function LearningGoalsSidebar({ onSelectGoal, selectedGoalId, isCollapsed, onToggleCollapse }: LearningGoalsSidebarProps) {
 
   const categories = Array.from(new Set(learningGoals.map(g => g.category)));
 
@@ -41,7 +42,7 @@ export default function LearningGoalsSidebar({ onSelectGoal, selectedGoalId }: L
           </h2>
         )}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={onToggleCollapse}
           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >

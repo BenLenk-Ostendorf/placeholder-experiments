@@ -30,7 +30,7 @@ export default function TrustSurvey({ onSubmit }: TrustSurveyProps) {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
       <div className="text-center mb-12">
         <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Do you trust AI to generate accurate and reliable text?
+          How often do you think an LLM produces the same answer for the same prompt?
         </p>
       </div>
 

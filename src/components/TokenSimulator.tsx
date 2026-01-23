@@ -129,27 +129,37 @@ export default function TokenSimulator() {
           </button>
         </div>
 
-        {/* Generated Email at Top */}
-        <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-6 mb-6">
-          <p className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Generated Email:</p>
-          <p className="text-sm leading-relaxed text-gray-900 dark:text-white whitespace-pre-line">
-            {getGeneratedText()}
-          </p>
+        {/* Generated Email at Top - Much More Prominent */}
+        <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-4 border-blue-400 dark:border-blue-600 rounded-2xl p-10 mb-8 shadow-2xl">
+          <div className="mb-6">
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Choose the next token for the email
+            </h3>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              You can choose how the email is written
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border-2 border-gray-300 dark:border-gray-600 shadow-lg">
+            <p className="text-2xl leading-relaxed text-gray-900 dark:text-white whitespace-pre-line font-medium">
+              {getGeneratedText()}
+            </p>
+          </div>
           
           {/* Tone Rating Right Below Email */}
           {isComplete && (
-            <div className={`mt-4 p-3 rounded-lg border ${
+            <div className={`mt-6 p-4 rounded-xl border-2 ${
               getFinalTone() === 'nice'
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                : 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                : 'bg-rose-50 dark:bg-rose-900/20 border-rose-300 dark:border-rose-700'
             }`}>
-              <div className="flex items-center gap-2">
-                <svg className={`w-5 h-5 ${
+              <div className="flex items-center gap-3">
+                <svg className={`w-6 h-6 ${
                   getFinalTone() === 'nice' ? 'text-green-600 dark:text-green-400' : 'text-rose-600 dark:text-rose-400'
                 }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className={`text-sm font-medium ${
+                <p className={`text-base font-bold ${
                   getFinalTone() === 'nice' ? 'text-green-900 dark:text-green-100' : 'text-rose-900 dark:text-rose-100'
                 }`}>
                   Final Tone: {getFinalTone() === 'nice' ? '😊 Nice & Respectful' : '😒 Passive-Aggressive'}
@@ -160,123 +170,125 @@ export default function TokenSimulator() {
         </div>
       </div>
 
-      {/* Token Selection Levels */}
-      <div className="space-y-6 mb-6">
+      {/* Token Selection Levels - Smaller and only show current level */}
+      <div className="space-y-4 mb-6">
         {/* Probability Annotation */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-          <p className="text-sm text-blue-900 dark:text-blue-100">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2">
+          <p className="text-xs text-blue-900 dark:text-blue-100">
             <strong>Probability:</strong> The percentage and bar show how likely each token is to be selected by the AI model.
           </p>
         </div>
 
-        {/* Level 1 */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            Level 1: Choose First Token
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {tree.options.map((option, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleLevel1Select(option)}
-                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                  level1Selection?.token === option.token
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 shadow-md'
-                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-semibold ${level1Selection?.token === option.token ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'}`}>
-                    {option.token}
-                  </span>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {(option.probability * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
-                    style={{ width: `${option.probability * 100}%` }}
-                  />
-                </div>
-              </button>
-            ))}
+        {/* Level 1 - Only show if not selected yet */}
+        {!level1Selection && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Level 1: Choose First Token
+            </h3>
+            <div className="grid grid-cols-1 gap-1">
+              {tree.options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleLevel1Select(option)}
+                  className="p-2 rounded border-2 transition-all bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 flex-shrink-0">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {option.token}
+                      </span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                          style={{ width: `${option.probability * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
+                        {(option.probability * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Level 2 */}
-        <div className={level1Selection ? '' : 'opacity-50 pointer-events-none'}>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            Level 2: Choose Second Token
-            {!level1Selection && <span className="text-gray-400 ml-2">(Select Level 1 first)</span>}
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {(level1Selection?.options || []).map((option, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleLevel2Select(option)}
-                disabled={!level1Selection}
-                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                  level2Selection?.token === option.token
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 shadow-md'
-                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-semibold ${level2Selection?.token === option.token ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'}`}>
-                    {option.token}
-                  </span>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {(option.probability * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
-                    style={{ width: `${option.probability * 100}%` }}
-                  />
-                </div>
-              </button>
-            ))}
+        {/* Level 2 - Only show if Level 1 selected but Level 2 not selected */}
+        {level1Selection && !level2Selection && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Level 2: Choose Second Token
+            </h3>
+            <div className="grid grid-cols-1 gap-1">
+              {(level1Selection?.options || []).map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleLevel2Select(option)}
+                  className="p-2 rounded border-2 transition-all bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 flex-shrink-0">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {option.token}
+                      </span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                          style={{ width: `${option.probability * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
+                        {(option.probability * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Level 3 */}
-        <div className={level2Selection ? '' : 'opacity-50 pointer-events-none'}>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            Level 3: Choose Final Token
-            {!level2Selection && <span className="text-gray-400 ml-2">(Select Level 2 first)</span>}
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {(level2Selection?.options || []).map((option, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleLevel3Select(option)}
-                disabled={!level2Selection}
-                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                  level3Selection?.token === option.token
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 shadow-md'
-                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-semibold ${level3Selection?.token === option.token ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'}`}>
-                    {option.token}
-                  </span>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {(option.probability * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
-                    style={{ width: `${option.probability * 100}%` }}
-                  />
-                </div>
-              </button>
-            ))}
+        {/* Level 3 - Only show if Level 2 selected but Level 3 not selected */}
+        {level2Selection && !level3Selection && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Level 3: Choose Final Token
+            </h3>
+            <div className="grid grid-cols-1 gap-1">
+              {(level2Selection?.options || []).map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleLevel3Select(option)}
+                  className="p-2 rounded border-2 transition-all bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 flex-shrink-0">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {option.token}
+                      </span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                          style={{ width: `${option.probability * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-10 text-right">
+                        {(option.probability * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Tone Analysis - Only show after completion */}

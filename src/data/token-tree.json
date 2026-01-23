@@ -1,5 +1,5 @@
 {
-  "prompt": "Dear Prof. Keene,\n\nThank you for getting back to me regarding the assignment deadline.",
+  "prompt": "Dear Alex,\n\nThank you for your application to our research program.",
   "options": [
     {
       "token": "I",
@@ -10,9 +10,9 @@
           "probability": 0.35,
           "tone": "nice",
           "options": [
-            { "token": "appreciate", "probability": 0.65, "tone": "nice", "final": "you taking the time to clarify this." },
-            { "token": "value", "probability": 0.25, "tone": "nice", "final": "your thoughtful guidance on this matter." },
-            { "token": "admire", "probability": 0.10, "tone": "nice", "final": "how responsive you've been to all students." }
+            { "token": "appreciate", "probability": 0.65, "tone": "nice", "final": "the time you invested in your application." },
+            { "token": "enjoyed", "probability": 0.25, "tone": "nice", "final": "reading about your research interests and goals." },
+            { "token": "admire", "probability": 0.10, "tone": "nice", "final": "your dedication to pursuing this field of study." }
           ]
         },
         {
@@ -20,91 +20,91 @@
           "probability": 0.40,
           "tone": "neutral",
           "options": [
-            { "token": "surprised", "probability": 0.45, "tone": "passive-aggressive", "final": "you found the time to respond at all." },
-            { "token": "hoping", "probability": 0.35, "tone": "nice", "final": "we could discuss this further in office hours." },
-            { "token": "under", "probability": 0.20, "tone": "passive-aggressive", "final": "the impression the policy was different." }
-          ]
-        },
-        {
-          "token": "certainly",
-          "probability": 0.25,
-          "tone": "neutral",
-          "options": [
-            { "token": "understand", "probability": 0.50, "tone": "passive-aggressive", "final": "that rules apply differently to some students." },
-            { "token": "appreciate", "probability": 0.35, "tone": "nice", "final": "your flexibility in this situation." },
-            { "token": "noticed", "probability": 0.15, "tone": "passive-aggressive", "final": "the prompt reply compared to my last three emails." }
-          ]
-        }
-      ]
-    },
-    {
-      "token": "It",
-      "probability": 0.32,
-      "options": [
-        {
-          "token": "means",
-          "probability": 0.40,
-          "tone": "nice",
-          "options": [
-            { "token": "a lot", "probability": 0.55, "tone": "nice", "final": "that you considered my circumstances." },
-            { "token": "so much", "probability": 0.30, "tone": "nice", "final": "to have a professor who truly listens." },
-            { "token": "everything", "probability": 0.15, "tone": "nice", "final": "to feel supported during this stressful time." }
+            { "token": "surprised", "probability": 0.45, "tone": "passive-aggressive", "final": "you thought this application would be competitive." },
+            { "token": "hoping", "probability": 0.35, "tone": "nice", "final": "to find a place for you, but unfortunately cannot this year." },
+            { "token": "under", "probability": 0.20, "tone": "passive-aggressive", "final": "the impression you understood our admission standards." }
           ]
         },
         {
           "token": "must",
-          "probability": 0.35,
-          "tone": "neutral",
-          "options": [
-            { "token": "be", "probability": 0.50, "tone": "passive-aggressive", "final": "nice to have such clear-cut policies to hide behind." },
-            { "token": "have", "probability": 0.35, "tone": "passive-aggressive", "final": "been difficult to copy and paste that syllabus excerpt." },
-            { "token": "take", "probability": 0.15, "tone": "passive-aggressive", "final": "real effort to be this consistent in saying no." }
-          ]
-        },
-        {
-          "token": "was",
           "probability": 0.25,
           "tone": "neutral",
           "options": [
-            { "token": "kind", "probability": 0.45, "tone": "nice", "final": "of you to reply so quickly." },
-            { "token": "interesting", "probability": 0.35, "tone": "passive-aggressive", "final": "to see how fast you can respond when you want to." },
-            { "token": "helpful", "probability": 0.20, "tone": "nice", "final": "to receive such a detailed explanation." }
+            { "token": "inform", "probability": 0.50, "tone": "passive-aggressive", "final": "you that your qualifications don't meet our requirements." },
+            { "token": "regretfully", "probability": 0.35, "tone": "nice", "final": "decline your application at this time." },
+            { "token": "say", "probability": 0.15, "tone": "passive-aggressive", "final": "we expected more from someone with your background." }
           ]
         }
       ]
     },
     {
-      "token": "Your",
+      "token": "Unfortunately,",
+      "probability": 0.32,
+      "options": [
+        {
+          "token": "we",
+          "probability": 0.40,
+          "tone": "nice",
+          "options": [
+            { "token": "cannot", "probability": 0.55, "tone": "nice", "final": "offer you a position this year, but encourage you to apply again." },
+            { "token": "had", "probability": 0.30, "tone": "nice", "final": "many strong candidates and had to make difficult choices." },
+            { "token": "must", "probability": 0.15, "tone": "nice", "final": "focus on candidates whose profiles better match our current needs." }
+          ]
+        },
+        {
+          "token": "your",
+          "probability": 0.35,
+          "tone": "neutral",
+          "options": [
+            { "token": "application", "probability": 0.50, "tone": "passive-aggressive", "final": "was not what we were looking for academically." },
+            { "token": "profile", "probability": 0.35, "tone": "passive-aggressive", "final": "doesn't quite reach the level we need for this program." },
+            { "token": "qualifications", "probability": 0.15, "tone": "passive-aggressive", "final": "fall short of what we consider suitable for our standards." }
+          ]
+        },
+        {
+          "token": "I",
+          "probability": 0.25,
+          "tone": "neutral",
+          "options": [
+            { "token": "cannot", "probability": 0.45, "tone": "nice", "final": "offer you admission, but wish you success in your future endeavors." },
+            { "token": "must", "probability": 0.35, "tone": "passive-aggressive", "final": "be frank that your credentials are academically unsuitable." },
+            { "token": "have", "probability": 0.20, "tone": "nice", "final": "to decline, though I appreciate your interest in our program." }
+          ]
+        }
+      ]
+    },
+    {
+      "token": "After",
       "probability": 0.20,
       "options": [
         {
-          "token": "response",
+          "token": "careful",
           "probability": 0.45,
           "tone": "neutral",
           "options": [
-            { "token": "was", "probability": 0.50, "tone": "nice", "final": "incredibly helpful and clear." },
-            { "token": "certainly", "probability": 0.30, "tone": "passive-aggressive", "final": "arrived faster than your grade feedback ever does." },
-            { "token": "reminded", "probability": 0.20, "tone": "passive-aggressive", "final": "me why students hesitate to ask for help." }
+            { "token": "consideration,", "probability": 0.50, "tone": "nice", "final": "we've decided to pursue other candidates at this time." },
+            { "token": "review,", "probability": 0.30, "tone": "passive-aggressive", "final": "it's clear your background isn't aligned with our expectations." },
+            { "token": "evaluation,", "probability": 0.20, "tone": "passive-aggressive", "final": "we determined you lack the necessary academic preparation." }
           ]
         },
         {
-          "token": "dedication",
+          "token": "reviewing",
           "probability": 0.35,
           "tone": "nice",
           "options": [
-            { "token": "to", "probability": 0.60, "tone": "nice", "final": "your students really shows in moments like this." },
-            { "token": "is", "probability": 0.25, "tone": "nice", "final": "something I genuinely admire." },
-            { "token": "inspires", "probability": 0.15, "tone": "nice", "final": "me to put more effort into this course." }
+            { "token": "all", "probability": 0.60, "tone": "nice", "final": "applications, we had to make some very difficult decisions." },
+            { "token": "your", "probability": 0.25, "tone": "nice", "final": "materials, I regret that we cannot offer you admission." },
+            { "token": "the", "probability": 0.15, "tone": "nice", "final": "pool of applicants, we've selected candidates with stronger profiles." }
           ]
         },
         {
-          "token": "attention",
+          "token": "much",
           "probability": 0.20,
           "tone": "neutral",
           "options": [
-            { "token": "to", "probability": 0.55, "tone": "passive-aggressive", "final": "policy over people is truly remarkable." },
-            { "token": "means", "probability": 0.30, "tone": "nice", "final": "more than you might realize." },
-            { "token": "here", "probability": 0.15, "tone": "passive-aggressive", "final": "is a refreshing change from the usual silence." }
+            { "token": "deliberation,", "probability": 0.55, "tone": "passive-aggressive", "final": "we concluded you're not academically suited for this program." },
+            { "token": "thought,", "probability": 0.30, "tone": "nice", "final": "I must decline your application this cycle." },
+            { "token": "consideration,", "probability": 0.15, "tone": "passive-aggressive", "final": "it became apparent your qualifications are insufficient." }
           ]
         }
       ]
