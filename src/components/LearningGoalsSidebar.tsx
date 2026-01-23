@@ -12,51 +12,9 @@ interface LearningGoal {
 const learningGoals: LearningGoal[] = [
   {
     id: '1',
-    title: 'What is AI?',
-    description: 'Understanding artificial intelligence fundamentals',
-    category: 'Basics',
-  },
-  {
-    id: '2',
-    title: 'Machine Learning Basics',
-    description: 'Introduction to ML algorithms and concepts',
-    category: 'Basics',
-  },
-  {
-    id: '3',
-    title: 'Neural Networks',
-    description: 'How neural networks work and learn',
-    category: 'ML',
-  },
-  {
-    id: '4',
-    title: 'Natural Language Processing',
-    description: 'Understanding how AI processes language',
-    category: 'NLP',
-  },
-  {
-    id: '5',
-    title: 'Computer Vision',
-    description: 'How AI sees and interprets images',
-    category: 'Applications',
-  },
-  {
-    id: '6',
-    title: 'AI Ethics',
-    description: 'Ethical considerations in AI development',
-    category: 'Ethics',
-  },
-  {
-    id: '7',
-    title: 'Large Language Models',
-    description: 'Understanding LLMs like GPT and Claude',
-    category: 'NLP',
-  },
-  {
-    id: '8',
-    title: 'AI in Healthcare',
-    description: 'Applications of AI in medical field',
-    category: 'Applications',
+    title: 'Understanding How AI Produces Text',
+    description: 'Learn the fundamentals of how AI generates human-like text',
+    category: 'Text Generation',
   },
 ];
 

@@ -1,0 +1,113 @@
+{
+  "prompt": "Dear Prof. Keene,\n\nThank you for getting back to me regarding the assignment deadline.",
+  "options": [
+    {
+      "token": "I",
+      "probability": 0.48,
+      "options": [
+        {
+          "token": "really",
+          "probability": 0.35,
+          "tone": "nice",
+          "options": [
+            { "token": "appreciate", "probability": 0.65, "tone": "nice", "final": "you taking the time to clarify this." },
+            { "token": "value", "probability": 0.25, "tone": "nice", "final": "your thoughtful guidance on this matter." },
+            { "token": "admire", "probability": 0.10, "tone": "nice", "final": "how responsive you've been to all students." }
+          ]
+        },
+        {
+          "token": "was",
+          "probability": 0.40,
+          "tone": "neutral",
+          "options": [
+            { "token": "surprised", "probability": 0.45, "tone": "passive-aggressive", "final": "you found the time to respond at all." },
+            { "token": "hoping", "probability": 0.35, "tone": "nice", "final": "we could discuss this further in office hours." },
+            { "token": "under", "probability": 0.20, "tone": "passive-aggressive", "final": "the impression the policy was different." }
+          ]
+        },
+        {
+          "token": "certainly",
+          "probability": 0.25,
+          "tone": "neutral",
+          "options": [
+            { "token": "understand", "probability": 0.50, "tone": "passive-aggressive", "final": "that rules apply differently to some students." },
+            { "token": "appreciate", "probability": 0.35, "tone": "nice", "final": "your flexibility in this situation." },
+            { "token": "noticed", "probability": 0.15, "tone": "passive-aggressive", "final": "the prompt reply compared to my last three emails." }
+          ]
+        }
+      ]
+    },
+    {
+      "token": "It",
+      "probability": 0.32,
+      "options": [
+        {
+          "token": "means",
+          "probability": 0.40,
+          "tone": "nice",
+          "options": [
+            { "token": "a lot", "probability": 0.55, "tone": "nice", "final": "that you considered my circumstances." },
+            { "token": "so much", "probability": 0.30, "tone": "nice", "final": "to have a professor who truly listens." },
+            { "token": "everything", "probability": 0.15, "tone": "nice", "final": "to feel supported during this stressful time." }
+          ]
+        },
+        {
+          "token": "must",
+          "probability": 0.35,
+          "tone": "neutral",
+          "options": [
+            { "token": "be", "probability": 0.50, "tone": "passive-aggressive", "final": "nice to have such clear-cut policies to hide behind." },
+            { "token": "have", "probability": 0.35, "tone": "passive-aggressive", "final": "been difficult to copy and paste that syllabus excerpt." },
+            { "token": "take", "probability": 0.15, "tone": "passive-aggressive", "final": "real effort to be this consistent in saying no." }
+          ]
+        },
+        {
+          "token": "was",
+          "probability": 0.25,
+          "tone": "neutral",
+          "options": [
+            { "token": "kind", "probability": 0.45, "tone": "nice", "final": "of you to reply so quickly." },
+            { "token": "interesting", "probability": 0.35, "tone": "passive-aggressive", "final": "to see how fast you can respond when you want to." },
+            { "token": "helpful", "probability": 0.20, "tone": "nice", "final": "to receive such a detailed explanation." }
+          ]
+        }
+      ]
+    },
+    {
+      "token": "Your",
+      "probability": 0.20,
+      "options": [
+        {
+          "token": "response",
+          "probability": 0.45,
+          "tone": "neutral",
+          "options": [
+            { "token": "was", "probability": 0.50, "tone": "nice", "final": "incredibly helpful and clear." },
+            { "token": "certainly", "probability": 0.30, "tone": "passive-aggressive", "final": "arrived faster than your grade feedback ever does." },
+            { "token": "reminded", "probability": 0.20, "tone": "passive-aggressive", "final": "me why students hesitate to ask for help." }
+          ]
+        },
+        {
+          "token": "dedication",
+          "probability": 0.35,
+          "tone": "nice",
+          "options": [
+            { "token": "to", "probability": 0.60, "tone": "nice", "final": "your students really shows in moments like this." },
+            { "token": "is", "probability": 0.25, "tone": "nice", "final": "something I genuinely admire." },
+            { "token": "inspires", "probability": 0.15, "tone": "nice", "final": "me to put more effort into this course." }
+          ]
+        },
+        {
+          "token": "attention",
+          "probability": 0.20,
+          "tone": "neutral",
+          "options": [
+            { "token": "to", "probability": 0.55, "tone": "passive-aggressive", "final": "policy over people is truly remarkable." },
+            { "token": "means", "probability": 0.30, "tone": "nice", "final": "more than you might realize." },
+            { "token": "here", "probability": 0.15, "tone": "passive-aggressive", "final": "is a refreshing change from the usual silence." }
+          ]
+        }
+      ]
+    }
+  ]
+}

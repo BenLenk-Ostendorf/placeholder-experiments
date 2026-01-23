@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import LearningGoalsSidebar from '@/components/LearningGoalsSidebar';
 import AIDialogue from '@/components/AIDialogue';
+import TrustSurvey from '@/components/TrustSurvey';
+import TrustAnalysis from '@/components/TrustAnalysis';
+import LearningResources from '@/components/LearningResources';
+import PrerequisiteModal from '@/components/PrerequisiteModal';
+import TokenSimulator from '@/components/TokenSimulator';
 
 interface LearningGoal {
   id: string;
@@ -13,13 +18,47 @@ interface LearningGoal {
 
 export default function Home() {
   const [selectedGoal, setSelectedGoal] = useState<LearningGoal | null>(null);
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [showPrerequisiteModal, setShowPrerequisiteModal] = useState(false);
+  const [prerequisiteAccepted, setPrerequisiteAccepted] = useState(false);
+
+  const handleGoalSelect = (goal: LearningGoal) => {
+    setSelectedGoal(goal);
+    setShowPrerequisiteModal(true);
+    setPrerequisiteAccepted(false);
+  };
+
+  const handlePrerequisiteAccept = () => {
+    setShowPrerequisiteModal(false);
+    setPrerequisiteAccepted(true);
+  };
+
+  const handlePrerequisiteClose = () => {
+    setShowPrerequisiteModal(false);
+    setSelectedGoal(null);
+  };
+
+  const handleSurveySubmit = async (rating: number) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setUserRating(rating);
+    setSurveyCompleted(true);
+  };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Collapsible Sidebar */}
       <LearningGoalsSidebar 
-        onSelectGoal={setSelectedGoal}
+        onSelectGoal={handleGoalSelect}
         selectedGoalId={selectedGoal?.id}
+      />
+
+      {/* Prerequisite Modal */}
+      <PrerequisiteModal
+        isOpen={showPrerequisiteModal}
+        onClose={handlePrerequisiteClose}
+        onAccept={handlePrerequisiteAccept}
       />
 
       {/* Main Content Area */}
@@ -67,9 +106,24 @@ export default function Home() {
             )}
           </header>
 
-          {/* AI Dialogue Section */}
-          <main>
-            <AIDialogue />
+          {/* Main Content */}
+          <main className="space-y-8">
+            {/* Show Token Simulator if prerequisite accepted */}
+            {prerequisiteAccepted && selectedGoal && (
+              <TokenSimulator />
+            )}
+            
+            {/* Show Survey/Analysis if no learning goal active */}
+            {!prerequisiteAccepted && !surveyCompleted && (
+              <TrustSurvey onSubmit={handleSurveySubmit} />
+            )}
+            
+            {!prerequisiteAccepted && surveyCompleted && (
+              <>
+                <TrustAnalysis userRating={userRating!} />
+                <LearningResources />
+              </>
+            )}
           </main>
 
           {/* Footer */}
