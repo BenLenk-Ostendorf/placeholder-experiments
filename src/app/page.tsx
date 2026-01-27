@@ -10,6 +10,8 @@ import PrerequisiteModal from '@/components/PrerequisiteModal';
 import TokenSimulator from '@/components/TokenSimulator';
 import StorySection from '@/components/StorySection';
 import ExplanationSection from '@/components/ExplanationSection';
+import TokenVisual from '@/components/TokenVisual';
+import SpinnerVisual from '@/components/SpinnerVisual';
 import FinalQuiz from '@/components/FinalQuiz';
 import LearningComplete from '@/components/LearningComplete';
 
@@ -43,6 +45,23 @@ export default function Home() {
     setSidebarCollapsed(true); // Collapse sidebar when learning goal is selected
   }, []);
 
+  // Auto-scroll to bottom when learning step changes
+  useEffect(() => {
+    if (learningStep > 0) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        // Find the scrollable container
+        const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
+        if (scrollContainer) {
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
+    }
+  }, [learningStep]);
+
   const handleGoalSelect = (goal: LearningGoal) => {
     setSelectedGoal(goal);
     setShowPrerequisiteModal(true);
@@ -71,17 +90,39 @@ export default function Home() {
   };
 
   const handleStoryNext = () => {
-    setLearningStep(learningStep + 1);
+    // Define explicit step transitions to ensure proper progression
+    const currentStep = learningStep;
+    
+    if (currentStep === 1) setLearningStep(2);
+    else if (currentStep === 2) setLearningStep(3);
+    else if (currentStep === 3) setLearningStep(3.1);
+    else if (currentStep === 3.1) setLearningStep(3.2);
+    else if (currentStep === 4) setLearningStep(4.1);
+    else if (currentStep === 4.1) setLearningStep(5);
+    else if (currentStep === 5) setLearningStep(5.1);
+    else if (currentStep === 5.1) setLearningStep(6);
+    else if (currentStep === 6) setLearningStep(6.1);
+    else if (currentStep === 6.1) setLearningStep(7);
+    else if (currentStep === 7) setLearningStep(7.1);
+    else if (currentStep === 7.1) setLearningStep(7.2);
+    else if (currentStep === 7.5) setLearningStep(8);
+    else if (currentStep === 8) setLearningStep(8.1);
+    else if (currentStep === 8.1) setLearningStep(8.2);
+    else if (currentStep === 8.2) setLearningStep(9);
+    else {
+      // Fallback: increment by 0.1
+      setLearningStep(Math.round((learningStep + 0.1) * 10) / 10);
+    }
   };
 
   const handleSurveySubmit = async (rating: number) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     setUserRating(rating);
-    setLearningStep(learningStep + 1); // Progress to next step
+    setLearningStep(4); // Progress to step 4 after survey
   };
 
-  const handleQuizComplete = () => {
-    setQuizScore(3); // Placeholder score
+  const handleQuizComplete = (finalScore: number) => {
+    setQuizScore(finalScore); // Use actual quiz score
     setLearningStep(10); // Move to completion
   };
 
@@ -128,6 +169,12 @@ export default function Home() {
                 imageSide="left"
                 imageAlt="Spezi"
                 characterName="Spezi"
+                imagePath="/resources/faces/spezi/frustrated.png"
+                imageSize={96}
+                imageScale={1.6}
+                imagePositionX={60}
+                imagePositionY={20}
+                imageObjectFit="cover"
                 text="ChatGPT just insulted my student! I wanted a polite rejection, and the thing writes to him that he is 'academically unsuitable'!"
                 onClick={learningStep === 1 ? handleStoryNext : undefined}
               />
@@ -151,19 +198,21 @@ export default function Home() {
                 imageAlt="Spezi"
                 characterName="Spezi"
                 text="Same prompt as last week! It was perfect then!"
+                onClick={learningStep === 3 ? handleStoryNext : undefined}
               />
             )}
 
-            {selectedGoal && learningStep >= 3 && (
+            {selectedGoal && learningStep >= 3.1 && (
               <StorySection
                 imageSide="right"
                 imageAlt="Dr. Puck"
                 characterName="Dr. Puck"
                 text="Tell me – how often do you think an LLM produces the same answer for the same prompt?"
+                onClick={learningStep === 3.1 ? handleStoryNext : undefined}
               />
             )}
 
-            {selectedGoal && learningStep === 3 && (
+            {selectedGoal && learningStep >= 3.2 && learningStep < 4 && (
               <TrustSurvey onSubmit={handleSurveySubmit} />
             )}
 
@@ -175,78 +224,137 @@ export default function Home() {
             {/* Step 4: Reflection on insights - adaptive based on user rating */}
             {selectedGoal && learningStep >= 4 && userRating !== null && (
               <StorySection
+                imageSide="left"
+                imageAlt="Spezi"
+                characterName="Spezi"
+                text={
+                  userRating >= 4
+                    ? "But I thought they were consistent! The same prompt should give the same answer, right?"
+                    : userRating === 3
+                    ? "I'm not sure... sometimes it seems consistent, sometimes not?"
+                    : "Yeah, I've noticed they're not very consistent at all."
+                }
+                onClick={learningStep === 4 ? handleStoryNext : undefined}
+              />
+            )}
+
+            {selectedGoal && learningStep >= 4.1 && userRating !== null && (
+              <StorySection
                 imageSide="right"
                 imageAlt="Dr. Puck"
                 characterName="Dr. Puck"
                 text={
                   userRating >= 4
-                    ? "Ah, you think LLMs are quite consistent! That's a common assumption. But here's the surprising truth - they're actually probabilistic by nature. Let me show you why..."
+                    ? "NNNAAAJAAA... that's a common assumption, but technically speaking, LLMs are fundamentally probabilistic by nature, not deterministic. Let me explain why..."
                     : userRating === 3
-                    ? "You're uncertain about consistency? Smart! Most people don't realize that LLMs are fundamentally probabilistic. The same prompt can yield different outputs. Let me explain why..."
-                    : "You suspect LLMs aren't very consistent? You're absolutely right! They're probabilistic systems, not deterministic ones. Let me show you exactly why that happens..."
+                    ? "NNNAAAJAAA... you're right to be uncertain. Most people don't realize that LLMs are fundamentally probabilistic. The same prompt can yield different outputs. Let me explain why..."
+                    : "Precisely. They're probabilistic systems, not deterministic ones. Let me show you exactly why that happens..."
                 }
+                onClick={learningStep === 4.1 ? handleStoryNext : undefined}
               />
             )}
 
-            {/* Step 5: Continue explanation */}
+            {/* Step 5: Continue explanation - always explain tokens */}
             {selectedGoal && learningStep >= 5 && (
-              <>
-                <StorySection
-                  imageSide="right"
-                  imageAlt="Dr. Puck"
-                  characterName="Dr. Puck"
-                  text="AI text generation is based on something called 'tokens'. Each time the model generates text, it's making probabilistic choices..."
-                />
-                <StorySection
-                  imageSide="left"
-                  imageAlt="Spezi"
-                  characterName="Spezi"
-                  text="Tokens? What are those exactly?"
-                />
-              </>
+              <StorySection
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="AI text generation is based on something called 'tokens'. Each time the model generates text, it's making probabilistic choices..."
+                onClick={learningStep === 5 ? handleStoryNext : undefined}
+              />
             )}
 
-            {selectedGoal && learningStep === 4 && (
-              <button
-                onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Continue
-              </button>
+            {selectedGoal && learningStep >= 5.1 && (
+              <StorySection
+                imageSide="left"
+                imageAlt="Spezi"
+                characterName="Spezi"
+                text="Tokens? What are those exactly?"
+                onClick={learningStep === 5.1 ? handleStoryNext : undefined}
+              />
             )}
 
-            {selectedGoal && learningStep === 5 && (
-              <button
-                onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Continue
-              </button>
-            )}
-
-            {/* Step 6: Explanation Section */}
+            {/* Step 6: Token Explanation Section - always show */}
             {selectedGoal && learningStep >= 6 && (
               <ExplanationSection
                 title="Understanding Tokens"
-                content="Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks. When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before. Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
+                content={[
+                  "Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks.",
+                  "When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before.",
+                  "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
+                ]}
+                visual={<TokenVisual />}
               />
             )}
 
             {selectedGoal && learningStep === 6 && (
               <button
                 onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
+              >
+                Continue
+              </button>
+            )}
+
+            {selectedGoal && learningStep >= 6.1 && (
+              <StorySection
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="Now, here's the crucial part: each token is selected from a probability distribution. Let me explain what that means..."
+                onClick={learningStep === 6.1 ? handleStoryNext : undefined}
+              />
+            )}
+
+            {/* Step 7: Probability Distribution Explanation - always show */}
+            {selectedGoal && learningStep >= 7 && (
+              <StorySection
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="Think of it like a spinner wheel. If one section takes up half the wheel, it's much more likely to land there than a tiny section - that's how probability distributions work."
+                onClick={learningStep === 7 ? handleStoryNext : undefined}
+              />
+            )}
+
+            {selectedGoal && learningStep >= 7.1 && (
+              <StorySection
+                imageSide="left"
+                imageAlt="Spezi"
+                characterName="Spezi"
+                text="So... for each token, the AI calculates how likely different token options are, like different sized sections on a spinner?"
+                onClick={learningStep === 7.1 ? handleStoryNext : undefined}
+              />
+            )}
+
+            {selectedGoal && learningStep >= 7.2 && (
+              <ExplanationSection
+                title="Understanding Probability Distributions"
+                content={[
+                  "A probability distribution describes how likely different outcomes are. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
+                  "For AI text generation, each token position has a probability distribution over all possible tokens - like a spinner with thousands of sections, where some sections (likely tokens) are much larger than others (unlikely tokens).",
+                  "The model calculates these probabilities, then 'spins the wheel' to sample from that distribution and choose the next token. Each spin is independent, which is why the same prompt can produce different outputs."
+                ]}
+                visual={<SpinnerVisual />}
+              />
+            )}
+
+            {selectedGoal && learningStep === 7.2 && (
+              <button
+                onClick={() => setLearningStep(7.5)}
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
               >
                 Try It Yourself
               </button>
             )}
 
-            {/* Step 7: Token Simulator */}
-            {selectedGoal && learningStep >= 7 && (
+            {/* Step 7.5: Token Simulator */}
+            {selectedGoal && learningStep >= 7.5 && (
               <TokenSimulator />
             )}
 
-            {selectedGoal && learningStep === 7 && (
+            {selectedGoal && learningStep === 7.5 && (
               <button
                 onClick={handleStoryNext}
                 className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
@@ -257,35 +365,33 @@ export default function Home() {
 
             {/* Step 8: Short Story Block */}
             {selectedGoal && learningStep >= 8 && (
-              <>
-                <StorySection
-                  imageSide="right"
-                  imageAlt="Dr. Puck"
-                  characterName="Dr. Puck"
-                  text="So, Spezi, you've just experienced how AI makes decisions token by token. Did you notice how even neutral tokens can lead to completely different tones depending on what follows?"
-                />
-                <StorySection
-                  imageSide="left"
-                  imageAlt="Spezi"
-                  characterName="Spezi"
-                  text="Wow! So that's why ChatGPT gave me different results with the same prompt! It's making probabilistic choices each time!"
-                />
-                <StorySection
-                  imageSide="right"
-                  imageAlt="Dr. Puck"
-                  characterName="Dr. Puck"
-                  text="Precisely! Now let's test your understanding with a quick quiz."
-                />
-              </>
+              <StorySection
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="NNNAAAJAAA... technically speaking, you've just observed how the model makes sequential token predictions. Each choice influences the probability distribution of subsequent tokens - remember the spinner wheel analogy - which explains the variability in output."
+                onClick={learningStep === 8 ? handleStoryNext : undefined}
+              />
             )}
 
-            {selectedGoal && learningStep === 8 && (
-              <button
-                onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Take the Quiz
-              </button>
+            {selectedGoal && learningStep >= 8.1 && (
+              <StorySection
+                imageSide="left"
+                imageAlt="Spezi"
+                characterName="Spezi"
+                text="Oh... so that's why ChatGPT gave me different results with the same prompt. It's making probabilistic choices each time, not just picking the same thing."
+                onClick={learningStep === 8.1 ? handleStoryNext : undefined}
+              />
+            )}
+
+            {selectedGoal && learningStep >= 8.2 && (
+              <StorySection
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="To be precise, yes. Now, let's assess your understanding with a brief quiz."
+                onClick={learningStep === 8.2 ? handleStoryNext : undefined}
+              />
             )}
 
             {/* Step 9: Final Quiz */}

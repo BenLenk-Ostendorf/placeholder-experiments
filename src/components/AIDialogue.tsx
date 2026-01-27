@@ -2,50 +2,50 @@
 
 interface Message {
   id: number;
-  speaker: 'alex' | 'sam';
+  speaker: 'spezi' | 'drPuck';
   text: string;
 }
 
 const dialogue: Message[] = [
   {
     id: 1,
-    speaker: 'alex',
-    text: "Hey Sam! I've been learning about AI lately. Can you explain what machine learning actually is?",
+    speaker: 'spezi',
+    text: "Dr. William, I'm really confused about something. ChatGPT gave me completely different answers to the same prompt, and I used it last week and it was perfect!",
   },
   {
     id: 2,
-    speaker: 'sam',
-    text: "Sure! Machine learning is a subset of AI where computers learn from data without being explicitly programmed. Instead of writing specific rules, we feed the system examples and it learns patterns.",
+    speaker: 'drPuck',
+    text: "(sips Yorkshire Tea) NNNAAAJAAA... technically speaking, you're observing the probabilistic nature of large language models. They don't produce deterministic outputs.",
   },
   {
     id: 3,
-    speaker: 'alex',
-    text: "That's fascinating! So it's like teaching a child by showing examples rather than giving strict instructions?",
+    speaker: 'spezi',
+    text: "Probabilistic? So it's like... random? But that doesn't make sense, it seems so smart!",
   },
   {
     id: 4,
-    speaker: 'sam',
-    text: "Exactly! For instance, instead of programming every rule for recognizing a cat, you show the system thousands of cat images and it learns the patterns that make something a cat.",
+    speaker: 'drPuck',
+    text: "Not random – probabilistic. There's a crucial difference. Each token the model generates has a probability distribution. The model calculates likelihoods and samples from them. It's actually quite elegant mathematically...",
   },
   {
     id: 5,
-    speaker: 'alex',
-    text: "I see! And what about neural networks? I keep hearing that term everywhere.",
+    speaker: 'spezi',
+    text: "Wait, tokens? What are those exactly? I keep hearing that term but... well, I should probably know this, shouldn't I?",
   },
   {
     id: 6,
-    speaker: 'sam',
-    text: "Neural networks are inspired by how our brains work. They consist of layers of interconnected nodes that process information. Each connection has a weight that gets adjusted during learning.",
+    speaker: 'drPuck',
+    text: "Tokens are the fundamental units of text processing. Think of them as sub-word pieces – sometimes whole words, sometimes parts. When generating text, the model predicts one token at a time, each choice influencing the next. It's sequential probability calculation.",
   },
   {
     id: 7,
-    speaker: 'alex',
-    text: "So the AI is literally learning by adjusting these weights? That's incredible!",
+    speaker: 'spezi',
+    text: "So that's why the same prompt can give different results? Because it's making probability-based choices each time?",
   },
   {
     id: 8,
-    speaker: 'sam',
-    text: "Yes! Through a process called backpropagation, the network adjusts weights to minimize errors. It's like fine-tuning a musical instrument until it sounds just right.",
+    speaker: 'drPuck',
+    text: "Precisely! And that's why your 'perfect' prompt from last week produced different output. The model doesn't remember previous generations – each run is independent, sampling from the probability distribution at each step.",
   },
 ];
 
@@ -60,52 +60,52 @@ export default function AIDialogue() {
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">AI Learning Conversation</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Alex & Sam discuss AI concepts</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Spezi & Dr. Puck discuss AI concepts</p>
         </div>
       </div>
 
       <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
         {dialogue.map((message) => {
-          const isAlex = message.speaker === 'alex';
+          const isSpezi = message.speaker === 'spezi';
           return (
             <div
               key={message.id}
-              className={`flex gap-3 ${isAlex ? '' : 'flex-row-reverse'}`}
+              className={`flex gap-3 ${isSpezi ? '' : 'flex-row-reverse'}`}
             >
               {/* Avatar */}
               <div className="flex-shrink-0">
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
-                    isAlex
-                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500'
-                      : 'bg-gradient-to-br from-green-500 to-emerald-500'
+                    isSpezi
+                      ? 'bg-gradient-to-br from-gray-700 to-gray-900'
+                      : 'bg-gradient-to-br from-amber-600 to-amber-800'
                   }`}
                 >
-                  {isAlex ? 'A' : 'S'}
+                  {isSpezi ? 'S' : 'P'}
                 </div>
               </div>
 
               {/* Message Bubble */}
-              <div className={`flex-1 ${isAlex ? 'mr-12' : 'ml-12'}`}>
+              <div className={`flex-1 ${isSpezi ? 'mr-12' : 'ml-12'}`}>
                 <div className="flex items-center gap-2 mb-1">
                   <span
                     className={`font-semibold text-sm ${
-                      isAlex
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-green-600 dark:text-green-400'
+                      isSpezi
+                        ? 'text-gray-700 dark:text-gray-300'
+                        : 'text-amber-700 dark:text-amber-400'
                     }`}
                   >
-                    {isAlex ? 'Alex' : 'Sam'}
+                    {isSpezi ? 'Spezi' : 'Dr. Puck'}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {isAlex ? 'Learner' : 'AI Expert'}
+                    {isSpezi ? 'Doktorand' : 'Postdoc'}
                   </span>
                 </div>
                 <div
                   className={`p-4 rounded-2xl ${
-                    isAlex
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-800 dark:text-gray-200 rounded-tl-none'
-                      : 'bg-green-50 dark:bg-green-900/20 text-gray-800 dark:text-gray-200 rounded-tr-none'
+                    isSpezi
+                      ? 'bg-gray-50 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200 rounded-tl-none'
+                      : 'bg-amber-50 dark:bg-amber-900/20 text-gray-800 dark:text-gray-200 rounded-tr-none'
                   }`}
                 >
                   <p className="text-sm leading-relaxed">{message.text}</p>

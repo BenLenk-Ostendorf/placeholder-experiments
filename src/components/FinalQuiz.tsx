@@ -9,7 +9,7 @@ interface QuizQuestion {
 }
 
 interface FinalQuizProps {
-  onComplete: () => void;
+  onComplete: (finalScore: number) => void;
 }
 
 export default function FinalQuiz({ onComplete }: FinalQuizProps) {
@@ -71,7 +71,9 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
       setSelectedAnswer(null);
       setShowFeedback(false);
     } else {
-      onComplete();
+      // Calculate final score including current question
+      const finalScore = selectedAnswer === questions[currentQuestion].correctAnswer ? score + 1 : score;
+      onComplete(finalScore);
     }
   };
 
