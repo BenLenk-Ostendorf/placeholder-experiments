@@ -255,9 +255,9 @@ export default function Home() {
                 faceId="puck_explaining"
                 text={
                   userRating >= 4
-                    ? "NNNAAAJAAA... that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
+                    ? "...that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
                     : userRating === 3
-                    ? "NNNAAAJAAA... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
+                    ? "... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
                     : "Precisely! They're probabilistic - involving chance and randomness. Let me show you exactly why..."
                 }
                 onClick={learningStep === 4.1 ? handleStoryNext : undefined}
@@ -431,7 +431,6 @@ export default function Home() {
 
           {/* Footer */}
           <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-500">
-            <p>Built with Next.js, Tailwind CSS & Firebase</p>
           </footer>
         </div>
       </div>
