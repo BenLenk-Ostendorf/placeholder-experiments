@@ -2,37 +2,52 @@
 
 import Image from 'next/image';
 import { GlossaryText } from './Glossary';
+import { getFace } from '@/config/faceConfig';
 
 interface StorySectionProps {
   imageSide: 'left' | 'right';
-  imageAlt: string;
   text: string;
+  faceId?: string; // e.g., "spezi_confused", "puck_tea"
+  // Legacy props (used if faceId not provided)
+  imageAlt?: string;
   characterName?: string;
   imagePath?: string;
+  imageSize?: number;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
+  imageObjectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  // Other props
   onClick?: () => void;
   onGlossaryTermClick?: (term: string) => void;
-  // Fine control parameters for image
-  imageSize?: number; // Size in pixels (default: 96)
-  imageScale?: number; // Scale multiplier (default: 1.0, e.g., 1.2 = 120%)
-  imagePositionX?: number; // Horizontal position in % (default: 50, range: 0-100, 0=left, 50=center, 100=right)
-  imagePositionY?: number; // Vertical position in % (default: 50, range: 0-100, 0=top, 50=center, 100=bottom)
-  imageObjectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'; // How image fits (default: 'cover')
 }
 
 export default function StorySection({ 
   imageSide, 
-  imageAlt, 
   text, 
-  characterName, 
-  imagePath, 
+  faceId,
+  imageAlt: legacyImageAlt,
+  characterName: legacyCharacterName, 
+  imagePath: legacyImagePath, 
   onClick,
   onGlossaryTermClick,
-  imageSize = 96,
-  imageScale = 1.0,
-  imagePositionX = 50,
-  imagePositionY = 50,
-  imageObjectFit = 'cover'
+  imageSize: legacyImageSize = 96,
+  imageScale: legacyImageScale = 1.0,
+  imagePositionX: legacyImagePositionX = 50,
+  imagePositionY: legacyImagePositionY = 50,
+  imageObjectFit: legacyImageObjectFit = 'cover'
 }: StorySectionProps) {
+  // Use faceId config if provided, otherwise fall back to legacy props
+  const faceConfig = faceId ? getFace(faceId) : undefined;
+  
+  const characterName = faceConfig?.characterName ?? legacyCharacterName;
+  const imagePath = faceConfig?.imagePath ?? legacyImagePath;
+  const imageAlt = faceConfig?.alt ?? legacyImageAlt ?? '';
+  const imageSize = faceConfig?.imageSize ?? legacyImageSize;
+  const imageScale = faceConfig?.imageScale ?? legacyImageScale;
+  const imagePositionX = faceConfig?.imagePositionX ?? legacyImagePositionX;
+  const imagePositionY = faceConfig?.imagePositionY ?? legacyImagePositionY;
+  const imageObjectFit = faceConfig?.imageObjectFit ?? legacyImageObjectFit;
   const containerSize = imageSize;
   const objectPosition = `${imagePositionX}% ${imagePositionY}%`;
   

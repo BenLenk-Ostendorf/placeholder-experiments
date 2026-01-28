@@ -189,14 +189,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 1 && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
-                imagePath="/resources/faces/spezi/frustrated.png"
-                imageSize={96}
-                imageScale={1.6}
-                imagePositionX={60}
-                imagePositionY={20}
-                imageObjectFit="cover"
+                faceId="spezi_frustrated"
                 text="ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?"
                 onClick={learningStep === 1 ? handleStoryNext : undefined}
               />
@@ -206,8 +199,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 2 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_tea"
                 text="(sips his Yorkshire Tea) Welllll... and you're surprised?"
                 onClick={learningStep === 2 ? handleStoryNext : undefined}
               />
@@ -217,8 +209,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 3 && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
+                faceId="spezi_frustrated"
                 text="Same prompt as last week! It was perfect then!"
                 onClick={learningStep === 3 ? handleStoryNext : undefined}
               />
@@ -227,8 +218,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 3.1 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_asking"
                 text="Tell me – how often do you think an LLM produces the same answer for the same prompt?"
                 onClick={learningStep === 3.1 ? handleStoryNext : undefined}
               />
@@ -247,8 +237,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 4 && userRating !== null && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
+                faceId="spezi_confused"
                 text={
                   userRating >= 4
                     ? "But I thought they were consistent! The same prompt should give the same answer, right?"
@@ -263,8 +252,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 4.1 && userRating !== null && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_explaining"
                 text={
                   userRating >= 4
                     ? "NNNAAAJAAA... that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
@@ -281,8 +269,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 5 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_explaining"
                 text="To understand this, we first need to talk about 'tokens'..."
                 onClick={learningStep === 5 ? handleStoryNext : undefined}
                 onGlossaryTermClick={openGlossaryAtTerm}
@@ -292,8 +279,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 5.1 && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
+                faceId="spezi_confused"
                 text="Tokens? Never heard of them."
                 onClick={learningStep === 5.1 ? handleStoryNext : undefined}
                 onGlossaryTermClick={openGlossaryAtTerm}
@@ -326,8 +312,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 6.1 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_asking"
                 text="Now, here's the key: how does the AI choose which token comes next?"
                 onClick={learningStep === 6.1 ? handleStoryNext : undefined}
                 onGlossaryTermClick={openGlossaryAtTerm}
@@ -338,8 +323,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 7 && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
+                faceId="spezi_confused"
                 text="I assume it just picks the most likely word?"
                 onClick={learningStep === 7 ? handleStoryNext : undefined}
                 onGlossaryTermClick={openGlossaryAtTerm}
@@ -349,8 +333,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 7.1 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_pointing"
                 text="Not quite! It uses something called a probability distribution. Let me show you with a visual..."
                 onClick={learningStep === 7.1 ? handleStoryNext : undefined}
                 onGlossaryTermClick={openGlossaryAtTerm}
@@ -397,8 +380,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 8 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_explaining"
                 text="NNNAAAJAAA... technically speaking, you've just observed how the model makes sequential token predictions. Each choice influences the probability distribution of subsequent tokens - remember the spinner wheel analogy - which explains the variability in output."
                 onClick={learningStep === 8 ? handleStoryNext : undefined}
               />
@@ -407,8 +389,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 8.1 && (
               <StorySection
                 imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
+                faceId="spezi_understanding"
                 text="Oh... so that's why ChatGPT gave me different results with the same prompt. It's making probabilistic choices each time, not just picking the same thing."
                 onClick={learningStep === 8.1 ? handleStoryNext : undefined}
               />
@@ -417,8 +398,7 @@ export default function Home() {
             {selectedGoal && learningStep >= 8.2 && (
               <StorySection
                 imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
+                faceId="puck_explaining"
                 text="To be precise, yes. Now, let's assess your understanding with a brief quiz."
                 onClick={learningStep === 8.2 ? handleStoryNext : undefined}
               />
