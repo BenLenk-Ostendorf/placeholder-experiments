@@ -10,7 +10,7 @@ export default function TokenVisual() {
         {['Hello', ' world', '!'].map((token, idx) => (
           <div
             key={idx}
-            className="px-4 py-2 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-lg font-mono text-sm font-semibold shadow-md"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-mono text-sm font-semibold shadow-sm"
           >
             {token}
           </div>

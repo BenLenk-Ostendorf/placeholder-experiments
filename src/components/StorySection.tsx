@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { GlossaryText } from './Glossary';
 
 interface StorySectionProps {
   imageSide: 'left' | 'right';
@@ -9,6 +10,7 @@ interface StorySectionProps {
   characterName?: string;
   imagePath?: string;
   onClick?: () => void;
+  onGlossaryTermClick?: (term: string) => void;
   // Fine control parameters for image
   imageSize?: number; // Size in pixels (default: 96)
   imageScale?: number; // Scale multiplier (default: 1.0, e.g., 1.2 = 120%)
@@ -24,6 +26,7 @@ export default function StorySection({
   characterName, 
   imagePath, 
   onClick,
+  onGlossaryTermClick,
   imageSize = 96,
   imageScale = 1.0,
   imagePositionX = 50,
@@ -66,10 +69,10 @@ export default function StorySection({
           </div>
         ) : (
           <div 
-            className="bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg"
+            className="bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center shadow-sm"
             style={{ width: `${containerSize}px`, height: `${containerSize}px` }}
           >
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -83,14 +86,30 @@ export default function StorySection({
 
       {/* Text Content */}
       <div className={`flex-1 ${imageSide === 'left' ? 'text-left' : 'text-right'}`}>
-        <div className={`inline-block max-w-2xl p-4 rounded-2xl ${
+        <div className={`relative inline-block max-w-2xl p-4 rounded-2xl ${
           imageSide === 'left' 
             ? 'bg-gray-100 dark:bg-gray-700 rounded-tl-none' 
             : 'bg-blue-100 dark:bg-blue-900/30 rounded-tr-none'
-        }`}>
+        } ${onClick ? 'hover:shadow-lg transition-shadow' : ''}`}>
           <p className="text-base leading-relaxed text-gray-900 dark:text-white">
-            {text}
+            {onGlossaryTermClick ? (
+              <GlossaryText text={text} onTermClick={onGlossaryTermClick} />
+            ) : (
+              text
+            )}
           </p>
+          {/* Clickable indicator */}
+          {onClick && (
+            <div className={`absolute ${imageSide === 'left' ? 'right-2' : 'left-2'} -bottom-3`}>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 text-white rounded-full shadow-md">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                <span className="text-xs font-medium">Click to continue</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

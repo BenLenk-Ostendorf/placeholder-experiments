@@ -14,6 +14,7 @@ import TokenVisual from '@/components/TokenVisual';
 import SpinnerVisual from '@/components/SpinnerVisual';
 import FinalQuiz from '@/components/FinalQuiz';
 import LearningComplete from '@/components/LearningComplete';
+import Glossary, { GlossaryButton, GlossaryText } from '@/components/Glossary';
 
 interface LearningGoal {
   id: string;
@@ -37,6 +38,13 @@ export default function Home() {
   const [userRating, setUserRating] = useState<number | null>(null);
   const [quizScore, setQuizScore] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showGlossary, setShowGlossary] = useState(false);
+  const [glossaryTerm, setGlossaryTerm] = useState<string | null>(null);
+
+  const openGlossaryAtTerm = (term: string) => {
+    setGlossaryTerm(term);
+    setShowGlossary(true);
+  };
 
   // Auto-select first learning goal on mount and show prerequisite modal
   useEffect(() => {
@@ -149,6 +157,20 @@ export default function Home() {
         onAccept={handlePrerequisiteAccept}
       />
 
+      {/* Glossary */}
+      <Glossary 
+        isOpen={showGlossary} 
+        onClose={() => {
+          setShowGlossary(false);
+          setGlossaryTerm(null);
+        }} 
+        initialTerm={glossaryTerm}
+      />
+      <GlossaryButton onClick={() => {
+        setGlossaryTerm(null);
+        setShowGlossary(true);
+      }} />
+
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-6 py-8 max-w-5xl">
@@ -175,7 +197,7 @@ export default function Home() {
                 imagePositionX={60}
                 imagePositionY={20}
                 imageObjectFit="cover"
-                text="ChatGPT just insulted my student! I wanted a polite rejection, and the thing writes to him that he is 'academically unsuitable'!"
+                text="ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?"
                 onClick={learningStep === 1 ? handleStoryNext : undefined}
               />
             )}
@@ -245,12 +267,13 @@ export default function Home() {
                 characterName="Dr. Puck"
                 text={
                   userRating >= 4
-                    ? "NNNAAAJAAA... that's a common assumption, but technically speaking, LLMs are fundamentally probabilistic by nature, not deterministic. Let me explain why..."
+                    ? "NNNAAAJAAA... that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
                     : userRating === 3
-                    ? "NNNAAAJAAA... you're right to be uncertain. Most people don't realize that LLMs are fundamentally probabilistic. The same prompt can yield different outputs. Let me explain why..."
-                    : "Precisely. They're probabilistic systems, not deterministic ones. Let me show you exactly why that happens..."
+                    ? "NNNAAAJAAA... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
+                    : "Precisely! They're probabilistic - involving chance and randomness. Let me show you exactly why..."
                 }
                 onClick={learningStep === 4.1 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
@@ -260,8 +283,9 @@ export default function Home() {
                 imageSide="right"
                 imageAlt="Dr. Puck"
                 characterName="Dr. Puck"
-                text="AI text generation is based on something called 'tokens'. Each time the model generates text, it's making probabilistic choices..."
+                text="To understand this, we first need to talk about 'tokens'..."
                 onClick={learningStep === 5 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
@@ -270,8 +294,9 @@ export default function Home() {
                 imageSide="left"
                 imageAlt="Spezi"
                 characterName="Spezi"
-                text="Tokens? What are those exactly?"
+                text="Tokens? Never heard of them."
                 onClick={learningStep === 5.1 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
@@ -285,6 +310,7 @@ export default function Home() {
                   "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
                 ]}
                 visual={<TokenVisual />}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
@@ -302,29 +328,32 @@ export default function Home() {
                 imageSide="right"
                 imageAlt="Dr. Puck"
                 characterName="Dr. Puck"
-                text="Now, here's the crucial part: each token is selected from a probability distribution. Let me explain what that means..."
+                text="Now, here's the key: how does the AI choose which token comes next?"
                 onClick={learningStep === 6.1 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
             {/* Step 7: Probability Distribution Explanation - always show */}
             {selectedGoal && learningStep >= 7 && (
               <StorySection
-                imageSide="right"
-                imageAlt="Dr. Puck"
-                characterName="Dr. Puck"
-                text="Think of it like a spinner wheel. If one section takes up half the wheel, it's much more likely to land there than a tiny section - that's how probability distributions work."
+                imageSide="left"
+                imageAlt="Spezi"
+                characterName="Spezi"
+                text="I assume it just picks the most likely word?"
                 onClick={learningStep === 7 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
             {selectedGoal && learningStep >= 7.1 && (
               <StorySection
-                imageSide="left"
-                imageAlt="Spezi"
-                characterName="Spezi"
-                text="So... for each token, the AI calculates how likely different token options are, like different sized sections on a spinner?"
+                imageSide="right"
+                imageAlt="Dr. Puck"
+                characterName="Dr. Puck"
+                text="Not quite! It uses something called a probability distribution. Let me show you with a visual..."
                 onClick={learningStep === 7.1 ? handleStoryNext : undefined}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 
@@ -332,11 +361,12 @@ export default function Home() {
               <ExplanationSection
                 title="Understanding Probability Distributions"
                 content={[
-                  "A probability distribution describes how likely different outcomes are. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
-                  "For AI text generation, each token position has a probability distribution over all possible tokens - like a spinner with thousands of sections, where some sections (likely tokens) are much larger than others (unlikely tokens).",
-                  "The model calculates these probabilities, then 'spins the wheel' to sample from that distribution and choose the next token. Each spin is independent, which is why the same prompt can produce different outputs."
+                  "A probability distribution is just a fancy way of saying 'some options are more likely than others'. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
+                  "For AI text generation, each word position has its own spinner - with thousands of sections! Some words (likely ones) have big sections, others (unlikely ones) have tiny sections.",
+                  "The AI 'spins the wheel' to pick each word. That's why the same prompt can give different results - each spin is random! Try spinning the wheel below to see how it works."
                 ]}
                 visual={<SpinnerVisual />}
+                onGlossaryTermClick={openGlossaryAtTerm}
               />
             )}
 

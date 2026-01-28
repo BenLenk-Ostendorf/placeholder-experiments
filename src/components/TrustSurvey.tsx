@@ -7,20 +7,19 @@ interface TrustSurveyProps {
 }
 
 export default function TrustSurvey({ onSubmit }: TrustSurveyProps) {
-  const [selectedRating, setSelectedRating] = useState<number>(3);
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const ratings = [
-    { value: 1, label: 'Absolutely Not', color: 'from-red-500 to-red-600' },
-    { value: 2, label: 'Not Really', color: 'from-orange-500 to-orange-600' },
-    { value: 3, label: 'Somewhat', color: 'from-yellow-500 to-yellow-600' },
-    { value: 4, label: 'Mostly', color: 'from-lime-500 to-lime-600' },
-    { value: 5, label: 'Absolutely', color: 'from-green-500 to-green-600' },
+  const options = [
+    { value: 1, label: 'Never the same', description: 'Every response is completely different' },
+    { value: 2, label: 'Rarely the same', description: 'Mostly different with occasional similarities' },
+    { value: 3, label: 'Sometimes the same', description: 'About 50/50 similar and different' },
+    { value: 4, label: 'Usually the same', description: 'Mostly similar with minor variations' },
+    { value: 5, label: 'Always the same', description: 'Identical or nearly identical every time' },
   ];
 
-  const currentRating = ratings.find(r => r.value === selectedRating);
-
   const handleSubmit = async () => {
+    if (selectedRating === null) return;
     setIsSubmitting(true);
     await onSubmit(selectedRating);
     setIsSubmitting(false);
@@ -28,64 +27,59 @@ export default function TrustSurvey({ onSubmit }: TrustSurveyProps) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
-      <div className="text-center mb-12">
-        <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+      <div className="text-center mb-8">
+        <p className="text-xl font-semibold text-gray-900 dark:text-white">
           How often do you think an LLM produces the same answer for the same prompt?
         </p>
       </div>
 
-      {/* Slider */}
-      <div className="mb-8">
-        {/* Labels Above Track */}
-        <div className="flex justify-between mb-3 px-2">
-          {ratings.map((rating) => (
-            <button
-              key={rating.value}
-              onClick={() => setSelectedRating(rating.value)}
-              className={`flex flex-col items-center transition-all ${
-                selectedRating === rating.value
-                  ? 'scale-110'
-                  : 'opacity-50 hover:opacity-75'
-              }`}
-            >
-              <span className={`text-xs font-medium text-center max-w-[70px] mb-2 ${
-                selectedRating === rating.value
-                  ? 'text-gray-900 dark:text-white'
-                  : 'text-gray-500 dark:text-gray-400'
+      {/* Option Buttons */}
+      <div className="space-y-3 mb-8">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => setSelectedRating(option.value)}
+            className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+              selectedRating === option.value
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-gray-700'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                selectedRating === option.value
+                  ? 'border-blue-500 bg-blue-500'
+                  : 'border-gray-300 dark:border-gray-500'
               }`}>
-                {rating.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="relative px-2">
-          {/* Track */}
-          <div className="h-3 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 dark:from-red-900/30 dark:via-yellow-900/30 dark:to-green-900/30 rounded-full" />
-          
-          {/* Slider Input */}
-          <input
-            type="range"
-            min="1"
-            max="5"
-            step="1"
-            value={selectedRating}
-            onChange={(e) => setSelectedRating(parseInt(e.target.value))}
-            className="absolute top-0 left-0 w-full h-3 opacity-0 cursor-pointer px-2"
-          />
-          
-          {/* Custom Thumb */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-gray-700 rounded-full shadow-lg border-4 border-blue-600 pointer-events-none transition-all duration-200"
-            style={{ left: `calc(${((selectedRating - 1) / 4) * 100}%)` }}
-          />
-        </div>
+                {selectedRating === option.value && (
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                )}
+              </div>
+              <div>
+                <p className={`font-medium ${
+                  selectedRating === option.value
+                    ? 'text-blue-900 dark:text-blue-100'
+                    : 'text-gray-900 dark:text-white'
+                }`}>
+                  {option.label}
+                </p>
+                <p className={`text-sm ${
+                  selectedRating === option.value
+                    ? 'text-blue-700 dark:text-blue-300'
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {option.description}
+                </p>
+              </div>
+            </div>
+          </button>
+        ))}
       </div>
 
       <button
         onClick={handleSubmit}
-        disabled={isSubmitting}
-        className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+        disabled={isSubmitting || selectedRating === null}
+        className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
@@ -99,10 +93,6 @@ export default function TrustSurvey({ onSubmit }: TrustSurveyProps) {
           'Submit Response'
         )}
       </button>
-
-      <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
-        Your response will be compared with other participants
-      </p>
     </div>
   );
 }

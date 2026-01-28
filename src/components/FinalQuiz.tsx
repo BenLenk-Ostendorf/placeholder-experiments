@@ -16,7 +16,7 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [score, setScore] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState<boolean[]>([]);
 
   const questions: QuizQuestion[] = [
     {
@@ -60,9 +60,8 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
     if (selectedAnswer === null) return;
     
     setShowFeedback(true);
-    if (selectedAnswer === questions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
-    }
+    const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
+    setCorrectAnswers(prev => [...prev, isCorrect]);
   };
 
   const handleNext = () => {
@@ -71,11 +70,13 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
       setSelectedAnswer(null);
       setShowFeedback(false);
     } else {
-      // Calculate final score including current question
-      const finalScore = selectedAnswer === questions[currentQuestion].correctAnswer ? score + 1 : score;
+      // Calculate final score from all answers
+      const finalScore = correctAnswers.filter(Boolean).length;
       onComplete(finalScore);
     }
   };
+  
+  const score = correctAnswers.filter(Boolean).length;
 
   const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
 

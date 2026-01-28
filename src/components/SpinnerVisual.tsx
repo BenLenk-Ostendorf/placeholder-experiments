@@ -7,13 +7,15 @@ export default function SpinnerVisual() {
   const [rotation, setRotation] = useState(0);
   const [selectedSection, setSelectedSection] = useState<number | null>(null);
 
-  // Sections with tokens and probabilities
+  // Animal sections with probabilities for incomplete sentence
   const sections = [
-    { token: 'I', probability: 0.50, color: '#3B82F6', label: '50%' },
-    { token: 'really', probability: 0.30, color: '#8B5CF6', label: '30%' },
-    { token: 'was', probability: 0.15, color: '#EC4899', label: '15%' },
-    { token: 'must', probability: 0.05, color: '#F59E0B', label: '5%' },
+    { token: 'dog', probability: 0.40, color: '#3B82F6', label: '40%' },
+    { token: 'cat', probability: 0.30, color: '#8B5CF6', label: '30%' },
+    { token: 'elephant', probability: 0.20, color: '#EC4899', label: '20%' },
+    { token: 'penguin', probability: 0.10, color: '#F59E0B', label: '10%' },
   ];
+  
+  const incompleteSentence = "My favorite animal is a";
 
   // Helper to convert angle to point on circle
   const angleToPoint = (angleDeg: number) => {
@@ -97,9 +99,18 @@ export default function SpinnerVisual() {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
-        Probability Distribution as Spinning Wheel
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center">
+        Complete the Sentence
       </h3>
+      
+      {/* Incomplete Sentence Display */}
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4 text-center">
+        <p className="text-lg text-gray-900 dark:text-white">
+          {incompleteSentence} <span className="font-bold text-blue-600 dark:text-blue-400">
+            {selectedSection !== null ? sections[selectedSection].token : '___'}
+          </span>
+        </p>
+      </div>
       
       <div className="relative w-72 h-72 mx-auto mb-4" style={{ padding: '10px' }}>
         {/* Fixed pointer at top */}

@@ -188,7 +188,7 @@ export default function TokenSimulator() {
       </div>
 
       {/* Generated Email */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-xl p-6 mb-6">
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
           <p className="text-lg leading-relaxed text-gray-900 dark:text-white whitespace-pre-line">
             {getGeneratedText()}
@@ -211,9 +211,9 @@ export default function TokenSimulator() {
         )}
       </div>
 
-      {/* Token Selection Levels - Spinner Wheels */}
+      {/* Token Selection - Single Spinner Wheel */}
       <div className="space-y-4">
-        {/* Level 1 */}
+        {/* Level 1 - Show only if no selection yet */}
         {!level1Selection && (
           <div>
             <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
@@ -227,7 +227,7 @@ export default function TokenSimulator() {
           </div>
         )}
 
-        {/* Level 2 */}
+        {/* Level 2 - Show only if level 1 done but level 2 not */}
         {level1Selection && !level2Selection && (
           <div>
             <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
@@ -241,7 +241,7 @@ export default function TokenSimulator() {
           </div>
         )}
 
-        {/* Level 3 */}
+        {/* Level 3 - Show only if level 2 done but level 3 not */}
         {level2Selection && !level3Selection && (
           <div>
             <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
@@ -254,7 +254,54 @@ export default function TokenSimulator() {
             />
           </div>
         )}
+
+        {/* Completed state - Show grayed out wheel with restart */}
+        {isComplete && (
+          <div>
+            <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
+              Sentence Complete!
+            </h3>
+            <SpinnerWheel
+              sections={level3Sections}
+              onSelect={() => {}}
+              size="medium"
+              completed={true}
+              selectedToken={level3Selection?.token}
+              onRestart={handleReset}
+            />
+          </div>
+        )}
       </div>
+
+      {/* How Mean Scale - only show when complete */}
+      {isComplete && (
+        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
+            How Mean Was This Email?
+          </h3>
+          <div className="relative h-8 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full overflow-hidden">
+            <div 
+              className="absolute top-0 h-full w-1 bg-white shadow-lg"
+              style={{ 
+                left: getFinalTone() === 'nice' ? '15%' : getFinalTone() === 'neutral' ? '50%' : '85%',
+                transition: 'left 0.5s ease-out'
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <span>Friendly</span>
+            <span>Neutral</span>
+            <span>Mean</span>
+          </div>
+          <p className="text-center mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            {getFinalTone() === 'nice' 
+              ? '😊 This email sounds friendly and professional!' 
+              : getFinalTone() === 'neutral'
+              ? '😐 This email is neutral in tone.'
+              : '😬 Ouch! This email sounds passive-aggressive!'}
+          </p>
+        </div>
+      )}
 
       {/* Teaching Point */}
       {!isComplete && (
