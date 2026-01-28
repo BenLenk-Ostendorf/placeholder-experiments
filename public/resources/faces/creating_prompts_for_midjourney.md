@@ -1,0 +1,8 @@
+- Use the recommended base prompt. 
+- Only describe what is visible (Bad: "delighted eyes from success", but "raised thumb, big smile, open eyes")
+- Be specific
+- Don't describe emotions or intentions, only describe what is visible
+- Use single line format, continuous comma-separated flow
+- Keep expression terms simple (e.g., "slight smile" not "slight upward curve of mouth corners")
+- Remove redundant details that are already implied
+- Keep character descriptions concise
