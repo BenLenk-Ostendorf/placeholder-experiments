@@ -53,18 +53,15 @@ export default function Home() {
     setSidebarCollapsed(true); // Collapse sidebar when learning goal is selected
   }, []);
 
-  // Auto-scroll to bottom when learning step changes
+  // Auto-scroll to show the beginning of new content when learning step changes
   useEffect(() => {
     if (learningStep > 0) {
       // Small delay to ensure content is rendered
       setTimeout(() => {
-        // Find the scrollable container
-        const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
-        if (scrollContainer) {
-          scrollContainer.scrollTo({
-            top: scrollContainer.scrollHeight,
-            behavior: 'smooth'
-          });
+        // Find the element for the current step
+        const newBlock = document.querySelector(`[data-step="${learningStep}"]`);
+        if (newBlock) {
+          newBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 150);
     }
@@ -187,231 +184,268 @@ export default function Home() {
           <main className="space-y-8">
             {/* Step 1: Story Introduction Part 1 */}
             {selectedGoal && learningStep >= 1 && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_frustrated"
-                text="ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?"
-                onClick={learningStep === 1 ? handleStoryNext : undefined}
-              />
+              <div data-step="1">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_frustrated"
+                  text="ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?"
+                  onClick={learningStep === 1 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {/* Step 2: Story Introduction Part 2 */}
             {selectedGoal && learningStep >= 2 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_tea"
-                text="(sips his Yorkshire Tea) Welllll... and you're surprised?"
-                onClick={learningStep === 2 ? handleStoryNext : undefined}
-              />
+              <div data-step="2">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_tea"
+                  text="(sips his Yorkshire Tea) Welllll... and you're surprised?"
+                  onClick={learningStep === 2 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {/* Step 3: Trust Survey */}
             {selectedGoal && learningStep >= 3 && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_frustrated"
-                text="Same prompt as last week! It was perfect then!"
-                onClick={learningStep === 3 ? handleStoryNext : undefined}
-              />
+              <div data-step="3">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_frustrated"
+                  text="Same prompt as last week! It was perfect then!"
+                  onClick={learningStep === 3 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 3.1 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_asking"
-                text="Tell me – how often do you think an LLM produces the same answer for the same prompt?"
-                onClick={learningStep === 3.1 ? handleStoryNext : undefined}
-              />
+              <div data-step="3.1">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_asking"
+                  text="Tell me – how often do you think an LLM produces the same answer for the same prompt?"
+                  onClick={learningStep === 3.1 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 3.2 && learningStep < 4 && (
-              <TrustSurvey onSubmit={handleSurveySubmit} />
+              <div data-step="3.2">
+                <TrustSurvey onSubmit={handleSurveySubmit} />
+              </div>
             )}
 
             {/* Show Trust Analysis after survey submission */}
             {selectedGoal && learningStep >= 4 && userRating !== null && (
-              <TrustAnalysis userRating={userRating} />
+              <div data-step="4-analysis">
+                <TrustAnalysis userRating={userRating} />
+              </div>
             )}
 
             {/* Step 4: Reflection on insights - adaptive based on user rating */}
             {selectedGoal && learningStep >= 4 && userRating !== null && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_confused"
-                text={
-                  userRating >= 4
-                    ? "But I thought they were consistent! The same prompt should give the same answer, right?"
-                    : userRating === 3
-                    ? "I'm not sure... sometimes it seems consistent, sometimes not?"
-                    : "Yeah, I've noticed they're not very consistent at all."
-                }
-                onClick={learningStep === 4 ? handleStoryNext : undefined}
-              />
+              <div data-step="4">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_confused"
+                  text={
+                    userRating >= 4
+                      ? "But I thought they were consistent! The same prompt should give the same answer, right?"
+                      : userRating === 3
+                      ? "I'm not sure... sometimes it seems consistent, sometimes not?"
+                      : "Yeah, I've noticed they're not very consistent at all."
+                  }
+                  onClick={learningStep === 4 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 4.1 && userRating !== null && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_explaining"
-                text={
-                  userRating >= 4
-                    ? "...that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
-                    : userRating === 3
-                    ? "... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
-                    : "Precisely! They're probabilistic - involving chance and randomness. Let me show you exactly why..."
-                }
-                onClick={learningStep === 4.1 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="4.1">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_explaining"
+                  text={
+                    userRating >= 4
+                      ? "...that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
+                      : userRating === 3
+                      ? "... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
+                      : "Precisely! They're probabilistic - involving chance and randomness. Let me show you exactly why..."
+                  }
+                  onClick={learningStep === 4.1 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {/* Step 5: Continue explanation - always explain tokens */}
             {selectedGoal && learningStep >= 5 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_explaining"
-                text="To understand this, we first need to talk about 'tokens'..."
-                onClick={learningStep === 5 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="5">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_explaining"
+                  text="To understand this, we first need to talk about 'tokens'..."
+                  onClick={learningStep === 5 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 5.1 && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_confused"
-                text="Tokens? Never heard of them."
-                onClick={learningStep === 5.1 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="5.1">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_confused"
+                  text="Tokens? Never heard of them."
+                  onClick={learningStep === 5.1 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {/* Step 6: Token Explanation Section - always show */}
             {selectedGoal && learningStep >= 6 && (
-              <ExplanationSection
-                title="Understanding Tokens"
-                content={[
-                  "Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks.",
-                  "When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before.",
-                  "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
-                ]}
-                visual={<TokenVisual />}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
-            )}
-
-            {selectedGoal && learningStep === 6 && (
-              <button
-                onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
-              >
-                Continue
-              </button>
+              <div data-step="6">
+                <ExplanationSection
+                  title="Understanding Tokens"
+                  content={[
+                    "Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks.",
+                    "When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before.",
+                    "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
+                  ]}
+                  visual={<TokenVisual />}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+                {learningStep === 6 && (
+                  <button
+                    onClick={handleStoryNext}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
+                  >
+                    Continue
+                  </button>
+                )}
+              </div>
             )}
 
             {selectedGoal && learningStep >= 6.1 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_asking"
-                text="Now, here's the key: how does the AI choose which token comes next?"
-                onClick={learningStep === 6.1 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="6.1">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_asking"
+                  text="Now, here's the key: how does the AI choose which token comes next?"
+                  onClick={learningStep === 6.1 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {/* Step 7: Probability Distribution Explanation - always show */}
             {selectedGoal && learningStep >= 7 && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_confused"
-                text="I assume it just picks the most likely word?"
-                onClick={learningStep === 7 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="7">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_confused"
+                  text="I assume it just picks the most likely word?"
+                  onClick={learningStep === 7 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 7.1 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_pointing"
-                text="Not quite! It uses something called a probability distribution. Let me show you with a visual..."
-                onClick={learningStep === 7.1 ? handleStoryNext : undefined}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
+              <div data-step="7.1">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_pointing"
+                  text="Not quite! It uses something called a probability distribution. Let me show you with a visual..."
+                  onClick={learningStep === 7.1 ? handleStoryNext : undefined}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 7.2 && (
-              <ExplanationSection
-                title="Understanding Probability Distributions"
-                content={[
-                  "A probability distribution is just a fancy way of saying 'some options are more likely than others'. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
-                  "For AI text generation, each word position has its own spinner - with thousands of sections! Some words (likely ones) have big sections, others (unlikely ones) have tiny sections.",
-                  "The AI 'spins the wheel' to pick each word. That's why the same prompt can give different results - each spin is random! Try spinning the wheel below to see how it works."
-                ]}
-                visual={<SpinnerVisual />}
-                onGlossaryTermClick={openGlossaryAtTerm}
-              />
-            )}
-
-            {selectedGoal && learningStep === 7.2 && (
-              <button
-                onClick={() => setLearningStep(7.5)}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
-              >
-                Try It Yourself
-              </button>
+              <div data-step="7.2">
+                <ExplanationSection
+                  title="Understanding Probability Distributions"
+                  content={[
+                    "A probability distribution is just a fancy way of saying 'some options are more likely than others'. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
+                    "For AI text generation, each word position has its own spinner - with thousands of sections! Some words (likely ones) have big sections, others (unlikely ones) have tiny sections.",
+                    "The AI 'spins the wheel' to pick each word. That's why the same prompt can give different results - each spin is random! Try spinning the wheel below to see how it works."
+                  ]}
+                  visual={<SpinnerVisual />}
+                  onGlossaryTermClick={openGlossaryAtTerm}
+                />
+                {learningStep === 7.2 && (
+                  <button
+                    onClick={() => setLearningStep(7.5)}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
+                  >
+                    Try It Yourself
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Step 7.5: Token Simulator */}
             {selectedGoal && learningStep >= 7.5 && (
-              <TokenSimulator />
-            )}
-
-            {selectedGoal && learningStep === 7.5 && (
-              <button
-                onClick={handleStoryNext}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
-              >
-                Continue
-              </button>
+              <div data-step="7.5">
+                <TokenSimulator />
+                {learningStep === 7.5 && (
+                  <button
+                    onClick={handleStoryNext}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
+                  >
+                    Continue
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Step 8: Short Story Block */}
             {selectedGoal && learningStep >= 8 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_explaining"
-                text="NNNAAAJAAA... technically speaking, you've just observed how the model makes sequential token predictions. Each choice influences the probability distribution of subsequent tokens - remember the spinner wheel analogy - which explains the variability in output."
-                onClick={learningStep === 8 ? handleStoryNext : undefined}
-              />
+              <div data-step="8">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_explaining"
+                  text="NNNAAAJAAA... technically speaking, you've just observed how the model makes sequential token predictions. Each choice influences the probability distribution of subsequent tokens - remember the spinner wheel analogy - which explains the variability in output."
+                  onClick={learningStep === 8 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 8.1 && (
-              <StorySection
-                imageSide="left"
-                faceId="spezi_understanding"
-                text="Oh... so that's why ChatGPT gave me different results with the same prompt. It's making probabilistic choices each time, not just picking the same thing."
-                onClick={learningStep === 8.1 ? handleStoryNext : undefined}
-              />
+              <div data-step="8.1">
+                <StorySection
+                  imageSide="left"
+                  faceId="spezi_understanding"
+                  text="Oh... so that's why ChatGPT gave me different results with the same prompt. It's making probabilistic choices each time, not just picking the same thing."
+                  onClick={learningStep === 8.1 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {selectedGoal && learningStep >= 8.2 && (
-              <StorySection
-                imageSide="right"
-                faceId="puck_explaining"
-                text="To be precise, yes. Now, let's assess your understanding with a brief quiz."
-                onClick={learningStep === 8.2 ? handleStoryNext : undefined}
-              />
+              <div data-step="8.2">
+                <StorySection
+                  imageSide="right"
+                  faceId="puck_explaining"
+                  text="To be precise, yes. Now, let's assess your understanding with a brief quiz."
+                  onClick={learningStep === 8.2 ? handleStoryNext : undefined}
+                />
+              </div>
             )}
 
             {/* Step 9: Final Quiz */}
             {selectedGoal && learningStep >= 9 && learningStep < 10 && (
-              <FinalQuiz onComplete={handleQuizComplete} />
+              <div data-step="9">
+                <FinalQuiz onComplete={handleQuizComplete} />
+              </div>
             )}
 
             {/* Step 10: Learning Complete */}
             {selectedGoal && learningStep >= 10 && (
-              <>
+              <div data-step="10">
                 <LearningComplete
                   score={quizScore}
                   totalQuestions={3}
@@ -425,7 +459,7 @@ export default function Home() {
                   </h2>
                   <LearningResources />
                 </div>
-              </>
+              </div>
             )}
           </main>
 
