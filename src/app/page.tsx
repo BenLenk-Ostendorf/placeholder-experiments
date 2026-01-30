@@ -6,7 +6,6 @@ import AIDialogue from '@/components/AIDialogue';
 import TrustSurvey from '@/components/TrustSurvey';
 import TrustAnalysis from '@/components/TrustAnalysis';
 import LearningResources from '@/components/LearningResources';
-import PrerequisiteModal from '@/components/PrerequisiteModal';
 import TokenSimulator from '@/components/TokenSimulator';
 import StorySection from '@/components/StorySection';
 import ExplanationSection from '@/components/ExplanationSection';
@@ -15,6 +14,7 @@ import SpinnerVisual from '@/components/SpinnerVisual';
 import FinalQuiz from '@/components/FinalQuiz';
 import LearningComplete from '@/components/LearningComplete';
 import Glossary, { GlossaryButton, GlossaryText } from '@/components/Glossary';
+import SkillTree, { skillTreeNodes } from '@/components/SkillTree';
 
 interface LearningGoal {
   id: string;
@@ -23,39 +23,78 @@ interface LearningGoal {
   category: string;
 }
 
-// Define the first learning goal
-const defaultLearningGoal: LearningGoal = {
-  id: '1',
-  title: 'Understanding How AI Produces Text',
-  description: 'Learn the fundamentals of how AI generates human-like text',
-  category: 'Text Generation',
+// Map skill tree node IDs to learning goal data
+const skillNodeToGoal: Record<string, LearningGoal> = {
+  'ai-text-generation': {
+    id: 'ai-text-generation',
+    title: 'Understanding How AI Produces Text',
+    description: 'Learn the fundamentals of how AI generates human-like text',
+    category: 'Text Generation',
+  },
 };
 
 export default function Home() {
+  // View state: 'skill-tree' or 'learning'
+  const [currentView, setCurrentView] = useState<'skill-tree' | 'learning'>('skill-tree');
+  const [debugMode, setDebugMode] = useState(false);
+  const [completedNodes, setCompletedNodes] = useState<string[]>([]);
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  
+  // Certificate state
+  const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
+  const [showCertificateSelection, setShowCertificateSelection] = useState(true); // Show on first load
+  
   const [selectedGoal, setSelectedGoal] = useState<LearningGoal | null>(null);
-  const [showPrerequisiteModal, setShowPrerequisiteModal] = useState(false);
   const [learningStep, setLearningStep] = useState(0);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [quizScore, setQuizScore] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [glossaryTerm, setGlossaryTerm] = useState<string | null>(null);
+  
+  const handleSelectCertificate = (certId: string | null) => {
+    setSelectedCertificate(certId);
+    if (certId === null) {
+      // If changing goal (clicking "Change Goal"), show selection modal
+      setShowCertificateSelection(true);
+    }
+  };
 
   const openGlossaryAtTerm = (term: string) => {
     setGlossaryTerm(term);
     setShowGlossary(true);
   };
 
-  // Auto-select first learning goal on mount and show prerequisite modal
-  useEffect(() => {
-    setSelectedGoal(defaultLearningGoal);
-    setShowPrerequisiteModal(true);
-    setSidebarCollapsed(true); // Collapse sidebar when learning goal is selected
-  }, []);
+  const handleStartGoal = (nodeId: string) => {
+    const goal = skillNodeToGoal[nodeId];
+    if (goal) {
+      setActiveNodeId(nodeId);
+      setSelectedGoal(goal);
+      setLearningStep(1); // Start directly at step 1
+      setUserRating(null);
+      setQuizScore(0);
+      setCurrentView('learning');
+      setSidebarCollapsed(true);
+    }
+  };
+
+  const handleToggleNodeComplete = (nodeId: string) => {
+    setCompletedNodes(prev => 
+      prev.includes(nodeId) 
+        ? prev.filter(id => id !== nodeId)
+        : [...prev, nodeId]
+    );
+  };
+
+  const handleBackToSkillTree = () => {
+    setCurrentView('skill-tree');
+    setSelectedGoal(null);
+    setLearningStep(0);
+  };
 
   // Auto-scroll to show the beginning of new content when learning step changes
   useEffect(() => {
-    if (learningStep > 0) {
+    if (learningStep > 0 && currentView === 'learning') {
       // Small delay to ensure content is rendered
       setTimeout(() => {
         // Find the element for the current step
@@ -65,12 +104,11 @@ export default function Home() {
         }
       }, 150);
     }
-  }, [learningStep]);
+  }, [learningStep, currentView]);
 
   const handleGoalSelect = (goal: LearningGoal) => {
     setSelectedGoal(goal);
-    setShowPrerequisiteModal(true);
-    setLearningStep(0);
+    setLearningStep(1); // Start directly at step 1
     setUserRating(null);
     setQuizScore(0);
     setSidebarCollapsed(true); // Collapse sidebar when learning goal is selected
@@ -79,19 +117,9 @@ export default function Home() {
   const handleToggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  const handlePrerequisiteAccept = () => {
-    setShowPrerequisiteModal(false);
-    setLearningStep(1); // Start with story introduction
-  };
   
   const handleContinueFromStep1 = () => {
     setLearningStep(2);
-  };
-
-  const handlePrerequisiteClose = () => {
-    setShowPrerequisiteModal(false);
-    setSelectedGoal(null);
   };
 
   const handleStoryNext = () => {
@@ -132,27 +160,61 @@ export default function Home() {
   };
 
   const handleNextGoal = () => {
-    // Reset for next learning goal
-    setSelectedGoal(null);
-    setLearningStep(0);
+    // Mark current node as complete
+    if (activeNodeId && !completedNodes.includes(activeNodeId)) {
+      setCompletedNodes(prev => [...prev, activeNodeId]);
+    }
+    // Go back to skill tree
+    handleBackToSkillTree();
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Collapsible Sidebar */}
-      <LearningGoalsSidebar 
-        onSelectGoal={handleGoalSelect}
-        selectedGoalId={selectedGoal?.id}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={handleToggleSidebar}
-      />
-
-      {/* Prerequisite Modal */}
-      <PrerequisiteModal
-        isOpen={showPrerequisiteModal}
-        onClose={handlePrerequisiteClose}
-        onAccept={handlePrerequisiteAccept}
-      />
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Top Navigation Bar */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          {currentView === 'learning' && (
+            <button
+              onClick={handleBackToSkillTree}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Skill Tree
+            </button>
+          )}
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {currentView === 'skill-tree' ? 'Learning Path' : selectedGoal?.title}
+          </h1>
+        </div>
+        
+        {/* Debug Mode Toggle */}
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            debugMode 
+              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+              : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+          title="Debug Mode"
+        >
+          {/* Bug icon */}
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="8" y="6" width="8" height="14" rx="4" />
+            <path d="M8 10h8" />
+            <path d="M8 14h8" />
+            <path d="M12 6V2" />
+            <path d="M6 10H2" />
+            <path d="M22 10h-4" />
+            <path d="M6 14H2" />
+            <path d="M22 14h-4" />
+            <path d="M6 18l-2 2" />
+            <path d="M18 18l2 2" />
+          </svg>
+          {debugMode && <span>Debug</span>}
+        </button>
+      </div>
 
       {/* Glossary */}
       <Glossary 
@@ -163,22 +225,31 @@ export default function Home() {
         }} 
         initialTerm={glossaryTerm}
       />
-      <GlossaryButton onClick={() => {
-        setGlossaryTerm(null);
-        setShowGlossary(true);
-      }} />
+      {currentView === 'learning' && (
+        <GlossaryButton onClick={() => {
+          setGlossaryTerm(null);
+          setShowGlossary(true);
+        }} />
+      )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-6 py-8 max-w-5xl">
-          {/* Learning Goal Title */}
-          {selectedGoal && (
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {selectedGoal.title}
-              </h1>
-            </div>
-          )}
+      {/* Skill Tree View */}
+      {currentView === 'skill-tree' && (
+        <SkillTree
+          completedNodes={completedNodes}
+          onStartGoal={handleStartGoal}
+          debugMode={debugMode}
+          onToggleNodeComplete={handleToggleNodeComplete}
+          selectedCertificate={selectedCertificate}
+          onSelectCertificate={handleSelectCertificate}
+          showCertificateSelection={showCertificateSelection}
+          onCloseCertificateSelection={() => setShowCertificateSelection(false)}
+        />
+      )}
+
+      {/* Learning Content View */}
+      {currentView === 'learning' && (
+        <div className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-6 py-8 max-w-5xl">
 
           {/* Main Content */}
           <main className="space-y-8">
@@ -468,6 +539,7 @@ export default function Home() {
           </footer>
         </div>
       </div>
+      )}
     </div>
   );
 }
