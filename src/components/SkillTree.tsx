@@ -626,6 +626,89 @@ export default function SkillTree({
               </div>
             )}
 
+            {/* Learning Format Options */}
+            {(accessibleNodes.includes(selectedNode.id) || debugMode) && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Choose your learning format:</p>
+                <div className="space-y-2">
+                  {/* Story-driven Course */}
+                  <button
+                    onClick={selectedNode.hasContent ? handleStartGoal : undefined}
+                    disabled={!selectedNode.hasContent}
+                    className={`w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3 ${
+                      selectedNode.hasContent
+                        ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      selectedNode.hasContent ? 'bg-blue-500' : 'bg-gray-400'
+                    }`}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${selectedNode.hasContent ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+                          Story-driven Course
+                        </span>
+                        {selectedNode.hasContent && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">
+                            Available
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Learn through an interactive dialogue with Spezi & Dr. Puck
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* explAIner - External Tool */}
+                  <div className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-400">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-500">explAIner</span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded">
+                          Coming Soon
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Interactive AI-powered explanation tool
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Video Course with Quiz */}
+                  <div className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-400">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-500">Video Course + Quiz</span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded">
+                          Coming Soon
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Watch video lessons and test your knowledge
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedNode(null)}
@@ -644,15 +727,6 @@ export default function SkillTree({
                   }`}
                 >
                   {completedNodes.includes(selectedNode.id) ? 'Mark Incomplete' : 'Mark Complete'}
-                </button>
-              )}
-
-              {(accessibleNodes.includes(selectedNode.id) || debugMode) && selectedNode.hasContent && (
-                <button
-                  onClick={handleStartGoal}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  {completedNodes.includes(selectedNode.id) ? 'Review Again' : 'Start Learning'}
                 </button>
               )}
             </div>

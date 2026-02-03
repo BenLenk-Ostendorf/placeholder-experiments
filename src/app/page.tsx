@@ -521,6 +521,7 @@ export default function Home() {
                   score={quizScore}
                   totalQuestions={3}
                   onNextGoal={handleNextGoal}
+                  goalTitle={selectedGoal.title}
                 />
                 
                 {/* Learning Resources - Further Deep Dive */}
