@@ -6,7 +6,7 @@ import { skillTreeNodes, SkillNode } from './SkillTree';
 interface FeedbackEntry {
   id: string;
   learningObjective: string;
-  resource: string;
+  nugget: string;
   contentId: string;
   flag: 'technicalError' | 'falseInformation' | 'generalFeedback';
   text: string;
@@ -110,7 +110,7 @@ interface ContentElement {
   interactiveType?: string;
 }
 
-interface ResourceItem {
+interface NuggetItem {
   id: string;
   name: string;
   type: 'Story-driven Course' | 'Video Course' | 'Quiz';
@@ -148,8 +148,8 @@ const getCharacterImage = (character: string, emotion: string): string => {
   }
 };
 
-// Resources per learning goal
-const resourcesPerGoal: Record<string, ResourceItem[]> = {
+// Nuggets per learning goal
+const nuggetsPerGoal: Record<string, NuggetItem[]> = {
   'ai-text-generation': [
     {
       id: 'res-ai-text-story',
@@ -219,7 +219,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '1',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-1',
     flag: 'generalFeedback',
     text: 'The opening dialogue is engaging but could use more context about what Spezi was trying to do.',
@@ -230,7 +230,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '2',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-3.2',
     flag: 'technicalError',
     text: 'The survey options are cut off on mobile devices.',
@@ -241,7 +241,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '3',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-6',
     flag: 'falseInformation',
     text: 'Tokens can also include special characters like emojis, this should be mentioned.',
@@ -252,7 +252,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '4',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-7.2',
     flag: 'generalFeedback',
     text: 'The spinner visual is great! Maybe add more examples with different probability distributions.',
@@ -263,7 +263,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '5',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-7.5',
     flag: 'technicalError',
     text: 'Token simulator wheel sometimes gets stuck when clicking rapidly.',
@@ -274,7 +274,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '6',
     learningObjective: 'Understanding How AI Produces Text',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-9',
     flag: 'falseInformation',
     text: 'Question 2 answer explanation could be clearer about why option B is incorrect.',
@@ -285,7 +285,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '7',
     learningObjective: 'AI Ethics Fundamentals',
-    resource: 'Video Course',
+    nugget: 'Video Course',
     contentId: 'video-intro-1',
     flag: 'generalFeedback',
     text: 'Video quality is good but subtitles are slightly out of sync.',
@@ -296,7 +296,7 @@ const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '8',
     learningObjective: 'Prompt Engineering Basics',
-    resource: 'Story-driven Course',
+    nugget: 'Story-driven Course',
     contentId: 'step-2',
     flag: 'technicalError',
     text: 'Image of Dr. Puck not loading correctly on Safari.',
@@ -317,15 +317,15 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'feedback' | 'resource' | 'publishing' | 'learningGoals' | 'assessment'>('feedback');
+  const [activeTab, setActiveTab] = useState<'feedback' | 'nuggets' | 'publishing' | 'learningGoals' | 'assessment'>('feedback');
   const [filterFlag, setFilterFlag] = useState<string | null>(null);
   const [filterObjective, setFilterObjective] = useState<string | null>(null);
   const [filterUniversity, setFilterUniversity] = useState<string | null>(null);
 
-  // Resource tab state - new workflow
+  // Nuggets tab state - new workflow
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
-  const [resourceElements, setResourceElements] = useState<ContentElement[]>([]);
+  const [selectedNuggetId, setSelectedNuggetId] = useState<string | null>(null);
+  const [nuggetElements, setNuggetElements] = useState<ContentElement[]>([]);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
@@ -336,8 +336,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   // Feedback data state (shared between tabs)
   const [feedbackData, setFeedbackData] = useState<FeedbackEntry[]>(initialFeedbackData);
 
-  // Mock ratings data for resources
-  const [resourceRatings] = useState([
+  // Mock ratings data for nuggets
+  const [nuggetRatings] = useState([
     { id: 'r1', elementId: 'step-1', rating: 4.5, count: 23, label: 'Spezi\'s complaint' },
     { id: 'r2', elementId: 'step-2', rating: 4.8, count: 21, label: 'Puck\'s response' },
     { id: 'r3', elementId: 'step-3', rating: 3.9, count: 19, label: 'Trust Survey' },
@@ -350,15 +350,15 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   ]);
 
   // Publishing tab state
-  const [publishSubTab, setPublishSubTab] = useState<'groups' | 'resources'>('groups');
+  const [publishSubTab, setPublishSubTab] = useState<'groups' | 'nuggets'>('groups');
   const [publishAudienceLevel, setPublishAudienceLevel] = useState<'experts' | 'closedBeta' | 'published'>('experts');
   const [audienceEmails, setAudienceEmails] = useState<Record<string, string[]>>({ ...mockAudiences });
   const [newEmail, setNewEmail] = useState('');
   const [importSuccess, setImportSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Publishable resources state
-  const [publishableResources, setPublishableResources] = useState([
+  // Publishable nuggets state
+  const [publishableNuggets, setPublishableNuggets] = useState([
     { id: 'res-1', title: 'Understanding How AI Produces Text', type: 'Story-driven Course', status: 'published' as const, lastModified: '2026-01-27' },
     { id: 'res-2', title: 'AI Ethics Fundamentals', type: 'Story-driven Course', status: 'closedBeta' as const, lastModified: '2026-01-26' },
     { id: 'res-3', title: 'Prompt Engineering Basics', type: 'Story-driven Course', status: 'experts' as const, lastModified: '2026-01-25' },
@@ -389,14 +389,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   // Publish confirmation modal state
   const [publishModal, setPublishModal] = useState<{
     isOpen: boolean;
-    resourceId: string | null;
-    resourceTitle: string;
+    nuggetId: string | null;
+    nuggetTitle: string;
     targetStatus: 'experts' | 'closedBeta' | 'published' | null;
     acknowledged: boolean;
   }>({
     isOpen: false,
-    resourceId: null,
-    resourceTitle: '',
+    nuggetId: null,
+    nuggetTitle: '',
     targetStatus: null,
     acknowledged: false,
   });
@@ -409,22 +409,22 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     setFeedbackData(feedbackData.map(f => f.id === feedbackId ? { ...f, status } : f));
   };
   
-  // Navigate from Feedback tab to Resource tab with specific element highlighted
+  // Navigate from Feedback tab to Nuggets tab with specific element highlighted
   const navigateToFeedbackElement = (feedback: FeedbackEntry) => {
     // Find the learning goal
     const goal = learningGoals.find(g => g.title === feedback.learningObjective);
     if (goal) {
       setSelectedGoalId(goal.id);
-      const resources = resourcesPerGoal[goal.id] || [];
-      if (resources.length > 0) {
-        setSelectedResourceId(resources[0].id);
-        setResourceElements([...resources[0].elements]);
+      const nuggets = nuggetsPerGoal[goal.id] || [];
+      if (nuggets.length > 0) {
+        setSelectedNuggetId(nuggets[0].id);
+        setNuggetElements([...nuggets[0].elements]);
         setIsCreatingNew(false);
       }
       setShowFeedbackPanel(true);
       setHighlightedElementId(feedback.contentId);
       setSelectedElementForFeedback(feedback.contentId);
-      setActiveTab('resource');
+      setActiveTab('nuggets');
       
       // Scroll to element after a brief delay
       setTimeout(() => {
@@ -436,29 +436,29 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     }
   };
 
-  // Select a resource to edit
-  const handleSelectResource = (resourceId: string) => {
+  // Select a nugget to edit
+  const handleSelectNugget = (nuggetId: string) => {
     const goal = learningGoals.find(g => g.id === selectedGoalId);
     if (!goal) return;
     
-    const resources = resourcesPerGoal[selectedGoalId!] || [];
-    const resource = resources.find(r => r.id === resourceId);
-    if (resource) {
-      setSelectedResourceId(resourceId);
-      setResourceElements([...resource.elements]);
+    const nuggets = nuggetsPerGoal[selectedGoalId!] || [];
+    const nugget = nuggets.find(n => n.id === nuggetId);
+    if (nugget) {
+      setSelectedNuggetId(nuggetId);
+      setNuggetElements([...nugget.elements]);
       setIsCreatingNew(false);
     }
   };
 
-  // Create new resource - auto-add mandatory FinalQuiz and LearningComplete
+  // Create new nugget - auto-add mandatory FinalQuiz and LearningComplete
   const handleCreateNew = () => {
-    setSelectedResourceId(null);
+    setSelectedNuggetId(null);
     // Auto-add mandatory elements that cannot be deleted
     const mandatoryElements: ContentElement[] = [
       { id: 'final-quiz', type: 'interactive', interactiveType: 'FinalQuiz' },
       { id: 'learning-complete', type: 'interactive', interactiveType: 'LearningComplete' },
     ];
-    setResourceElements(mandatoryElements);
+    setNuggetElements(mandatoryElements);
     setIsCreatingNew(true);
   };
   
@@ -470,15 +470,15 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   // Check if we can show insert button at this index
   const canInsertAt = (index: number) => {
     // Can't insert between FinalQuiz and LearningComplete or after LearningComplete
-    const element = resourceElements[index];
+    const element = nuggetElements[index];
     if (element && isMandatoryElement(element)) return false;
     return true;
   };
 
-  // Back to resource list
-  const handleBackToResourceList = () => {
-    setSelectedResourceId(null);
-    setResourceElements([]);
+  // Back to nugget list
+  const handleBackToNuggetList = () => {
+    setSelectedNuggetId(null);
+    setNuggetElements([]);
     setIsCreatingNew(false);
   };
 
@@ -493,18 +493,18 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     };
     
     if (atIndex !== undefined) {
-      const newElements = [...resourceElements];
+      const newElements = [...nuggetElements];
       newElements.splice(atIndex, 0, newElement);
-      setResourceElements(newElements);
+      setNuggetElements(newElements);
     } else {
       // Find index of first mandatory element (FinalQuiz) and insert before it
-      const mandatoryIndex = resourceElements.findIndex(e => isMandatoryElement(e));
+      const mandatoryIndex = nuggetElements.findIndex(e => isMandatoryElement(e));
       if (mandatoryIndex !== -1) {
-        const newElements = [...resourceElements];
+        const newElements = [...nuggetElements];
         newElements.splice(mandatoryIndex, 0, newElement);
-        setResourceElements(newElements);
+        setNuggetElements(newElements);
       } else {
-        setResourceElements([...resourceElements, newElement]);
+        setNuggetElements([...nuggetElements, newElement]);
       }
     }
     setEditingElementId(newElement.id);
@@ -512,25 +512,25 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   // Update element
   const updateElement = (id: string, updates: Partial<ContentElement>) => {
-    setResourceElements(resourceElements.map(e => e.id === id ? { ...e, ...updates } : e));
+    setNuggetElements(nuggetElements.map(e => e.id === id ? { ...e, ...updates } : e));
   };
 
   // Delete element
   const deleteElement = (id: string) => {
-    setResourceElements(resourceElements.filter(e => e.id !== id));
+    setNuggetElements(nuggetElements.filter(e => e.id !== id));
   };
 
   // Move element up/down
   const moveElement = (id: string, direction: 'up' | 'down') => {
-    const index = resourceElements.findIndex(e => e.id === id);
+    const index = nuggetElements.findIndex(e => e.id === id);
     if (direction === 'up' && index > 0) {
-      const newElements = [...resourceElements];
+      const newElements = [...nuggetElements];
       [newElements[index - 1], newElements[index]] = [newElements[index], newElements[index - 1]];
-      setResourceElements(newElements);
-    } else if (direction === 'down' && index < resourceElements.length - 1) {
-      const newElements = [...resourceElements];
+      setNuggetElements(newElements);
+    } else if (direction === 'down' && index < nuggetElements.length - 1) {
+      const newElements = [...nuggetElements];
       [newElements[index], newElements[index + 1]] = [newElements[index + 1], newElements[index]];
-      setResourceElements(newElements);
+      setNuggetElements(newElements);
     }
   };
 
@@ -570,12 +570,12 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   };
 
   // Open publish confirmation modal
-  const openPublishModal = (resourceId: string, newStatus: 'experts' | 'closedBeta' | 'published') => {
-    const resource = publishableResources.find(r => r.id === resourceId);
+  const openPublishModal = (nuggetId: string, newStatus: 'experts' | 'closedBeta' | 'published') => {
+    const nugget = publishableNuggets.find(n => n.id === nuggetId);
     setPublishModal({
       isOpen: true,
-      resourceId,
-      resourceTitle: resource?.title || '',
+      nuggetId: nuggetId,
+      nuggetTitle: nugget?.title || '',
       targetStatus: newStatus,
       acknowledged: false,
     });
@@ -583,15 +583,15 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   // Confirm and execute publish
   const confirmPublish = () => {
-    if (!publishModal.resourceId || !publishModal.targetStatus || !publishModal.acknowledged) return;
+    if (!publishModal.nuggetId || !publishModal.targetStatus || !publishModal.acknowledged) return;
     
-    setPublishableResources(resources => 
-      resources.map(r => r.id === publishModal.resourceId ? { ...r, status: publishModal.targetStatus!, lastModified: new Date().toISOString().split('T')[0] } : r)
+    setPublishableNuggets(nuggets => 
+      nuggets.map(n => n.id === publishModal.nuggetId ? { ...n, status: publishModal.targetStatus!, lastModified: new Date().toISOString().split('T')[0] } : n)
     );
-    console.log(`Published resource ${publishModal.resourceId} to ${publishModal.targetStatus}`);
+    console.log(`Published nugget ${publishModal.nuggetId} to ${publishModal.targetStatus}`);
     
     // Close modal
-    setPublishModal({ isOpen: false, resourceId: null, resourceTitle: '', targetStatus: null, acknowledged: false });
+    setPublishModal({ isOpen: false, nuggetId: null, nuggetTitle: '', targetStatus: null, acknowledged: false });
   };
 
   // Get audience count for a status
@@ -599,20 +599,20 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     return audienceEmails[status]?.length || 0;
   };
 
-  // Navigate to Resource tab and open specific resource in edit mode
-  const navigateToResourceEdit = (resourceTitle: string) => {
+  // Navigate to Nuggets tab and open specific nugget in edit mode
+  const navigateToNuggetEdit = (nuggetTitle: string) => {
     // Find the matching learning goal
-    const goal = learningGoals.find(g => g.title === resourceTitle);
+    const goal = learningGoals.find(g => g.title === nuggetTitle);
     if (goal) {
       setSelectedGoalId(goal.id);
-      // Find the first resource for this goal
-      const resources = resourcesPerGoal[goal.id] || [];
-      if (resources.length > 0) {
-        setSelectedResourceId(resources[0].id);
-        setResourceElements([...resources[0].elements]);
+      // Find the first nugget for this goal
+      const nuggets = nuggetsPerGoal[goal.id] || [];
+      if (nuggets.length > 0) {
+        setSelectedNuggetId(nuggets[0].id);
+        setNuggetElements([...nuggets[0].elements]);
         setIsCreatingNew(false);
       }
-      setActiveTab('resource');
+      setActiveTab('nuggets');
     }
   };
 
@@ -628,13 +628,13 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   });
 
   const handleContentIdClick = (entry: FeedbackEntry) => {
-    // Navigate to Resource tab with feedback panel open and element highlighted
+    // Navigate to Nuggets tab with feedback panel open and element highlighted
     navigateToFeedbackElement(entry);
   };
 
   const tabs = [
     { id: 'feedback', label: 'Feedback', icon: '📋' },
-    { id: 'resource', label: 'Resource', icon: '✏️' },
+    { id: 'nuggets', label: 'Nuggets', icon: '✏️' },
     { id: 'publishing', label: 'Publishing', icon: '📤' },
     { id: 'learningGoals', label: 'Learning Goals', icon: '🎯' },
     { id: 'assessment', label: 'Assessment', icon: '📝' },
@@ -766,7 +766,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         Learning Objective
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        Resource
+                        Nugget
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                         Content ID
@@ -794,13 +794,13 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             {entry.learningObjective}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                            {entry.resource}
+                            {entry.nugget}
                           </td>
                           <td className="px-4 py-3">
                             <button
                               onClick={() => handleContentIdClick(entry)}
                               className="text-sm font-mono text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300"
-                              title="Jump to element in Resource tab"
+                              title="Jump to element in Nuggets tab"
                             >
                               {entry.contentId}
                             </button>
@@ -853,7 +853,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </div>
         )}
 
-        {activeTab === 'resource' && (
+        {activeTab === 'nuggets' && (
           <div className="space-y-6">
             {/* Step 1: Learning Goal Selector - Table View */}
             {!selectedGoalId && (
@@ -865,14 +865,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Title</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Resources</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Nuggets</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {learningGoals.map(goal => {
-                      const resources = resourcesPerGoal[goal.id] || [];
+                      const nuggets = nuggetsPerGoal[goal.id] || [];
                       return (
                         <tr key={goal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                           <td className="px-4 py-3">
@@ -882,7 +882,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{resources.length} resource(s)</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{nuggets.length} nugget(s)</span>
                           </td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -897,8 +897,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             <button
                               onClick={() => {
                                 setSelectedGoalId(goal.id);
-                                setSelectedResourceId(null);
-                                setResourceElements([]);
+                                setSelectedNuggetId(null);
+                                setNuggetElements([]);
                                 setIsCreatingNew(false);
                               }}
                               className="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 rounded"
@@ -914,46 +914,46 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
               </div>
             )}
 
-            {/* Step 2: Resource List */}
-            {selectedGoalId && !selectedResourceId && !isCreatingNew && (
+            {/* Step 2: Nugget List */}
+            {selectedGoalId && !selectedNuggetId && !isCreatingNew && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Step 2: Select or Create Resource
+                    Step 2: Select or Create Nugget
                   </h3>
                   <button
                     onClick={handleCreateNew}
                     className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
                   >
-                    + Create New Resource
+                    + Create New Nugget
                   </button>
                 </div>
                 
-                {(resourcesPerGoal[selectedGoalId] || []).length === 0 ? (
+                {(nuggetsPerGoal[selectedGoalId] || []).length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <p className="text-sm">No resources yet for this learning goal.</p>
-                    <p className="text-xs mt-1">Click "Create New Resource" to get started.</p>
+                    <p className="text-sm">No nuggets yet for this learning goal.</p>
+                    <p className="text-xs mt-1">Click "Create New Nugget" to get started.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {(resourcesPerGoal[selectedGoalId] || []).map(resource => (
+                    {(nuggetsPerGoal[selectedGoalId] || []).map(nugget => (
                       <button
-                        key={resource.id}
-                        onClick={() => handleSelectResource(resource.id)}
+                        key={nugget.id}
+                        onClick={() => handleSelectNugget(nugget.id)}
                         className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-left"
                       >
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{resource.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{resource.type} • {resource.elements.length} elements</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{nugget.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{nugget.type} • {nugget.elements.length} elements</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            resource.status === 'published' ? 'bg-green-100 text-green-700' :
-                            resource.status === 'closedBeta' ? 'bg-yellow-100 text-yellow-700' :
-                            resource.status === 'experts' ? 'bg-purple-100 text-purple-700' :
+                            nugget.status === 'published' ? 'bg-green-100 text-green-700' :
+                            nugget.status === 'closedBeta' ? 'bg-yellow-100 text-yellow-700' :
+                            nugget.status === 'experts' ? 'bg-purple-100 text-purple-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
-                            {resource.status}
+                            {nugget.status}
                           </span>
                           <span className="text-gray-400">→</span>
                         </div>
@@ -965,19 +965,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             )}
 
             {/* Step 3: WYSIWYG Editor */}
-            {selectedGoalId && (selectedResourceId || isCreatingNew) && (
+            {selectedGoalId && (selectedNuggetId || isCreatingNew) && (
               <div className="space-y-4">
                 {/* Header with Back button and Show Feedback toggle */}
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => {
-                      handleBackToResourceList();
+                      handleBackToNuggetList();
                       setShowFeedbackPanel(false);
                       setHighlightedElementId(null);
                     }}
                     className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
-                    ← Back to resource list
+                    ← Back to nugget list
                   </button>
                   <div className="flex items-center gap-4">
                     <button
@@ -996,7 +996,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       💬 {showFeedbackPanel ? 'Hide Feedback' : 'Show Feedback'}
                     </button>
                     <button
-                      onClick={() => console.log('Saving resource:', { goalId: selectedGoalId, elements: resourceElements })}
+                      onClick={() => console.log('Saving nugget:', { goalId: selectedGoalId, elements: nuggetElements })}
                       className="px-4 py-1.5 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
                     >
                       Save (not persisted)
@@ -1032,13 +1032,13 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         </div>
                       </div>
 
-                      {resourceElements.length === 0 && (
+                      {nuggetElements.length === 0 && (
                         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                           <p className="text-sm">No content yet. Click + to add elements.</p>
                         </div>
                       )}
 
-                      {resourceElements.map((element, index) => {
+                      {nuggetElements.map((element, index) => {
                         const elementFeedback = feedbackData.filter(f => f.contentId === element.id && f.status === 'new');
                         const isHighlighted = highlightedElementId === element.id;
                         const isSelectedForFeedback = selectedElementForFeedback === element.id;
@@ -1070,8 +1070,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                 )}
                                 {!isMandatory && (
                                   <>
-                                    <button onClick={() => moveElement(element.id, 'up')} disabled={index === 0 || isMandatoryElement(resourceElements[index - 1])} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↑</button>
-                                    <button onClick={() => moveElement(element.id, 'down')} disabled={index === resourceElements.length - 1 || isMandatoryElement(resourceElements[index + 1])} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↓</button>
+                                    <button onClick={() => moveElement(element.id, 'up')} disabled={index === 0 || isMandatoryElement(nuggetElements[index - 1])} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↑</button>
+                                    <button onClick={() => moveElement(element.id, 'down')} disabled={index === nuggetElements.length - 1 || isMandatoryElement(nuggetElements[index + 1])} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↓</button>
                                     <button onClick={() => deleteElement(element.id)} className="p-1 text-red-400 hover:text-red-600 text-xs">×</button>
                                   </>
                                 )}
@@ -1319,8 +1319,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           <div className="space-y-3 max-h-[600px] overflow-y-auto">
                         {(() => {
                           const relevantFeedback = feedbackData.filter(f => {
-                            // Only show feedback for elements in current resource
-                            const elementIds = resourceElements.map(e => e.id);
+                            // Only show feedback for elements in current nugget
+                            const elementIds = nuggetElements.map(e => e.id);
                             if (!elementIds.includes(f.contentId)) return false;
                             // Filter by selected element if one is selected
                             if (selectedElementForFeedback && f.contentId !== selectedElementForFeedback) return false;
@@ -1415,7 +1415,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           {/* Overall Rating */}
                           <div className="p-3 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-amber-900 dark:text-amber-100">Overall Resource Rating</span>
+                              <span className="text-sm font-medium text-amber-900 dark:text-amber-100">Overall Nugget Rating</span>
                               <div className="flex items-center gap-2">
                                 <div className="flex">
                                   {[1, 2, 3, 4, 5].map(star => (
@@ -1431,7 +1431,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                           </div>
 
                           {/* Individual Element Ratings */}
-                          {resourceRatings.map(item => (
+                          {nuggetRatings.map(item => (
                             <div
                               key={item.id}
                               onClick={() => {
@@ -1505,9 +1505,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 👥 Manage Groups
               </button>
               <button
-                onClick={() => setPublishSubTab('resources')}
+                onClick={() => setPublishSubTab('nuggets')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  publishSubTab === 'resources'
+                  publishSubTab === 'nuggets'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
@@ -1642,20 +1642,20 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             )}
 
             {/* Publish Sub-tab */}
-            {publishSubTab === 'resources' && (
+            {publishSubTab === 'nuggets' && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Learning Goal</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Resource Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Nugget Type</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Last Modified</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {publishableResources.map(resource => {
+                    {publishableNuggets.map(nugget => {
                       const statusColors: Record<string, string> = {
                         draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
                         experts: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -1663,50 +1663,50 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         published: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                       };
                       return (
-                        <tr key={resource.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                        <tr key={nugget.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                           <td className="px-4 py-3">
                             <button
-                              onClick={() => navigateToResourceEdit(resource.title)}
+                              onClick={() => navigateToNuggetEdit(nugget.title)}
                               className="text-sm text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300 text-left"
-                              title="Edit this resource"
+                              title="Edit this nugget"
                             >
-                              {resource.title}
+                              {nugget.title}
                             </button>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{resource.type}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{nugget.type}</td>
                           <td className="px-4 py-3">
-                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${statusColors[resource.status]}`}>
-                              {resource.status === 'closedBeta' ? 'Closed Beta' : resource.status.charAt(0).toUpperCase() + resource.status.slice(1)}
+                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${statusColors[nugget.status]}`}>
+                              {nugget.status === 'closedBeta' ? 'Closed Beta' : nugget.status.charAt(0).toUpperCase() + nugget.status.slice(1)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{resource.lastModified}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{nugget.lastModified}</td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              {resource.status === 'draft' && (
+                              {nugget.status === 'draft' && (
                                 <button
-                                  onClick={() => openPublishModal(resource.id, 'experts')}
+                                  onClick={() => openPublishModal(nugget.id, 'experts')}
                                   className="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
                                 >
                                   → Experts
                                 </button>
                               )}
-                              {resource.status === 'experts' && (
+                              {nugget.status === 'experts' && (
                                 <button
-                                  onClick={() => openPublishModal(resource.id, 'closedBeta')}
+                                  onClick={() => openPublishModal(nugget.id, 'closedBeta')}
                                   className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
                                 >
                                   → Closed Beta
                                 </button>
                               )}
-                              {resource.status === 'closedBeta' && (
+                              {nugget.status === 'closedBeta' && (
                                 <button
-                                  onClick={() => openPublishModal(resource.id, 'published')}
+                                  onClick={() => openPublishModal(nugget.id, 'published')}
                                   className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200"
                                 >
                                   → Publish
                                 </button>
                               )}
-                              {resource.status === 'published' && (
+                              {nugget.status === 'published' && (
                                 <span className="text-xs text-gray-500">✓ Published</span>
                               )}
                             </div>
@@ -1822,7 +1822,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         className="w-4 h-4 rounded border-gray-300"
                       />
                       <label htmlFor="hasContent" className="text-sm text-gray-700 dark:text-gray-300">
-                        Has content (learning resources available)
+                        Has content (learning nuggets available)
                       </label>
                     </div>
                   </div>
@@ -2442,7 +2442,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                 }`}>
                   <p className="font-medium text-gray-900 dark:text-white mb-1">
-                    "{publishModal.resourceTitle}"
+                    "{publishModal.nuggetTitle}"
                   </p>
                   <p className="text-sm">
                     {publishModal.targetStatus === 'experts' && (
@@ -2452,7 +2452,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       <>Send notification emails to <strong>{getAudienceCount('closedBeta')} beta testers</strong> from partner universities.</>
                     )}
                     {publishModal.targetStatus === 'published' && (
-                      <>Make this resource <strong>publicly available</strong> to all registered users.</>
+                      <>Make this nugget <strong>publicly available</strong> to all registered users.</>
                     )}
                   </p>
                 </div>
@@ -2464,9 +2464,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 <div className="text-sm text-amber-800 dark:text-amber-200">
                   <p className="font-medium">This action will send emails!</p>
                   <p className="text-xs mt-1">
-                    {publishModal.targetStatus === 'experts' && 'Expert reviewers will receive an email notification with a link to review this resource.'}
+                    {publishModal.targetStatus === 'experts' && 'Expert reviewers will receive an email notification with a link to review this nugget.'}
                     {publishModal.targetStatus === 'closedBeta' && 'Beta testers will receive an email notification that new content is available for testing.'}
-                    {publishModal.targetStatus === 'published' && 'This resource will become visible to all users immediately.'}
+                    {publishModal.targetStatus === 'published' && 'This nugget will become visible to all users immediately.'}
                   </p>
                 </div>
               </div>
@@ -2480,7 +2480,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>I have tested this resource</strong> and I'm ready to collect feedback from {
+                  <strong>I have tested this nugget</strong> and I'm ready to collect feedback from {
                     publishModal.targetStatus === 'experts' ? 'expert reviewers' :
                     publishModal.targetStatus === 'closedBeta' ? 'beta testers' :
                     'the public'
@@ -2492,7 +2492,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             {/* Actions */}
             <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-end gap-3">
               <button
-                onClick={() => setPublishModal({ isOpen: false, resourceId: null, resourceTitle: '', targetStatus: null, acknowledged: false })}
+                onClick={() => setPublishModal({ isOpen: false, nuggetId: null, nuggetTitle: '', targetStatus: null, acknowledged: false })}
                 className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
               >
                 Cancel
