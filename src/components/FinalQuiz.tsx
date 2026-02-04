@@ -9,10 +9,11 @@ interface QuizQuestion {
 }
 
 interface FinalQuizProps {
-  onComplete: (finalScore: number) => void;
+  onComplete: (finalScore: number, totalQuestions: number) => void;
+  challengeMode?: boolean;
 }
 
-export default function FinalQuiz({ onComplete }: FinalQuizProps) {
+export default function FinalQuiz({ onComplete, challengeMode = false }: FinalQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -72,7 +73,7 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
     } else {
       // Calculate final score from all answers
       const finalScore = correctAnswers.filter(Boolean).length;
-      onComplete(finalScore);
+      onComplete(finalScore, questions.length);
     }
   };
   
@@ -85,7 +86,7 @@ export default function FinalQuiz({ onComplete }: FinalQuizProps) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Final Quiz
+            {challengeMode ? 'Challenge Quiz' : 'Final Quiz'}
           </h2>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
             Question {currentQuestion + 1} of {questions.length}

@@ -208,6 +208,7 @@ export const skillTreeNodes: SkillNode[] = [
 interface SkillTreeProps {
   completedNodes: string[];
   onStartGoal: (nodeId: string) => void;
+  onChallengeGoal: (nodeId: string) => void;
   debugMode: boolean;
   onToggleNodeComplete: (nodeId: string) => void;
   selectedCertificate: string | null;
@@ -219,6 +220,7 @@ interface SkillTreeProps {
 export default function SkillTree({ 
   completedNodes, 
   onStartGoal, 
+  onChallengeGoal,
   debugMode, 
   onToggleNodeComplete,
   selectedCertificate,
@@ -705,6 +707,45 @@ export default function SkillTree({
                       </p>
                     </div>
                   </div>
+
+                  {/* Challenge for Credit */}
+                  <button
+                    onClick={() => {
+                      if (selectedNode.hasContent) {
+                        onChallengeGoal(selectedNode.id);
+                        setSelectedNode(null);
+                      }
+                    }}
+                    disabled={!selectedNode.hasContent}
+                    className={`w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3 ${
+                      selectedNode.hasContent
+                        ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 cursor-pointer'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      selectedNode.hasContent ? 'bg-amber-500' : 'bg-gray-400'
+                    }`}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${selectedNode.hasContent ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+                          Challenge for Credit
+                        </span>
+                        {selectedNode.hasContent && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded">
+                            Test Out
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Already know this? Take the quiz to earn credit directly
+                      </p>
+                    </div>
+                  </button>
                 </div>
               </div>
             )}

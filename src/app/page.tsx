@@ -58,6 +58,7 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [glossaryTerm, setGlossaryTerm] = useState<string | null>(null);
+  const [challengeMode, setChallengeMode] = useState(false); // True when user is challenging for credit
 
   // Handle URL parameters for editing mode
   useEffect(() => {
@@ -123,6 +124,19 @@ export default function Home() {
       setSelectedGoal(goal);
       setLearningStep(1); // Start directly at step 1
       setUserRating(null);
+      setQuizScore(0);
+      setChallengeMode(false);
+      setCurrentView('learning');
+      setSidebarCollapsed(true);
+    }
+  };
+
+  const handleChallengeGoal = (nodeId: string) => {
+    const goal = skillNodeToGoal[nodeId];
+    if (goal) {
+      setActiveNodeId(nodeId);
+      setSelectedGoal(goal);
+      setChallengeMode(true);
       setQuizScore(0);
       setCurrentView('learning');
       setSidebarCollapsed(true);
@@ -205,7 +219,7 @@ export default function Home() {
     setLearningStep(4); // Progress to step 4 after survey
   };
 
-  const handleQuizComplete = (finalScore: number) => {
+  const handleQuizComplete = (finalScore: number, totalQuestions: number) => {
     setQuizScore(finalScore); // Use actual quiz score
     setLearningStep(10); // Move to completion
   };
@@ -338,6 +352,7 @@ export default function Home() {
         <SkillTree
           completedNodes={completedNodes}
           onStartGoal={handleStartGoal}
+          onChallengeGoal={handleChallengeGoal}
           debugMode={debugMode}
           onToggleNodeComplete={handleToggleNodeComplete}
           selectedCertificate={selectedCertificate}
@@ -357,7 +372,102 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8 max-w-5xl">
 
-          {/* Main Content */}
+          {/* Challenge Mode - Show Quiz Directly */}
+          {challengeMode && selectedGoal && (
+            <div className="space-y-6">
+              {/* Challenge Header */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Challenge for Credit</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {selectedGoal.title} — Pass the quiz to earn credit without completing the course
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quiz Component */}
+              <FinalQuiz
+                onComplete={(score, total) => {
+                  setQuizScore(score);
+                  // If passed (e.g., 80% or more), mark as complete
+                  if (score / total >= 0.8) {
+                    if (activeNodeId && !completedNodes.includes(activeNodeId)) {
+                      setCompletedNodes(prev => [...prev, activeNodeId]);
+                    }
+                  }
+                }}
+                challengeMode={true}
+              />
+
+              {/* Result and Navigation */}
+              {quizScore > 0 && (
+                <div className={`p-6 rounded-xl border-2 ${
+                  quizScore >= 2 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
+                }`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      quizScore >= 2 ? 'bg-green-500' : 'bg-amber-500'
+                    }`}>
+                      {quizScore >= 2 ? (
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`text-lg font-semibold ${
+                        quizScore >= 2 ? 'text-green-800 dark:text-green-200' : 'text-amber-800 dark:text-amber-200'
+                      }`}>
+                        {quizScore >= 2 ? '🎉 Challenge Passed!' : 'Not quite there yet'}
+                      </h3>
+                      <p className={`text-sm ${
+                        quizScore >= 2 ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'
+                      }`}>
+                        {quizScore >= 2 
+                          ? 'Congratulations! You\'ve earned credit for this learning objective.'
+                          : 'You might want to take the full course to learn more about this topic.'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={handleBackToSkillTree}
+                      className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                    >
+                      Back to Skill Tree
+                    </button>
+                    {quizScore < 2 && (
+                      <button
+                        onClick={() => {
+                          setChallengeMode(false);
+                          setLearningStep(1);
+                        }}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+                      >
+                        Take the Full Course
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Main Content - Regular Learning Flow */}
+          {!challengeMode && (
           <main className="space-y-8">
             {/* Step 1: Story Introduction Part 1 */}
             {selectedGoal && learningStep >= 1 && (
@@ -730,6 +840,7 @@ export default function Home() {
               </div>
             )}
           </main>
+          )}
 
           {/* Footer */}
           <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-500">

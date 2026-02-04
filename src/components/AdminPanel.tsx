@@ -372,6 +372,21 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [selectedQuizGoalId, setSelectedQuizGoalId] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
+  // Publish confirmation modal state
+  const [publishModal, setPublishModal] = useState<{
+    isOpen: boolean;
+    resourceId: string | null;
+    resourceTitle: string;
+    targetStatus: 'experts' | 'closedBeta' | 'published' | null;
+    acknowledged: boolean;
+  }>({
+    isOpen: false,
+    resourceId: null,
+    resourceTitle: '',
+    targetStatus: null,
+    acknowledged: false,
+  });
+
   const uniqueObjectives = [...new Set(feedbackData.map(f => f.learningObjective))];
   const uniqueUniversities = [...new Set(feedbackData.map(f => f.university))];
   
@@ -540,12 +555,34 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     setTimeout(() => setImportSuccess(false), 3000);
   };
 
-  // Handle publishing a resource to a new status
-  const handlePublishResource = (resourceId: string, newStatus: 'experts' | 'closedBeta' | 'published') => {
+  // Open publish confirmation modal
+  const openPublishModal = (resourceId: string, newStatus: 'experts' | 'closedBeta' | 'published') => {
+    const resource = publishableResources.find(r => r.id === resourceId);
+    setPublishModal({
+      isOpen: true,
+      resourceId,
+      resourceTitle: resource?.title || '',
+      targetStatus: newStatus,
+      acknowledged: false,
+    });
+  };
+
+  // Confirm and execute publish
+  const confirmPublish = () => {
+    if (!publishModal.resourceId || !publishModal.targetStatus || !publishModal.acknowledged) return;
+    
     setPublishableResources(resources => 
-      resources.map(r => r.id === resourceId ? { ...r, status: newStatus, lastModified: new Date().toISOString().split('T')[0] } : r)
+      resources.map(r => r.id === publishModal.resourceId ? { ...r, status: publishModal.targetStatus!, lastModified: new Date().toISOString().split('T')[0] } : r)
     );
-    console.log(`Published resource ${resourceId} to ${newStatus}`);
+    console.log(`Published resource ${publishModal.resourceId} to ${publishModal.targetStatus}`);
+    
+    // Close modal
+    setPublishModal({ isOpen: false, resourceId: null, resourceTitle: '', targetStatus: null, acknowledged: false });
+  };
+
+  // Get audience count for a status
+  const getAudienceCount = (status: 'experts' | 'closedBeta' | 'published') => {
+    return audienceEmails[status]?.length || 0;
   };
 
   // Navigate to Resource tab and open specific resource in edit mode
@@ -804,25 +841,64 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
         {activeTab === 'resource' && (
           <div className="space-y-6">
-            {/* Step 1: Learning Goal Selector */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Step 1: Select Learning Goal</h3>
-              <select
-                value={selectedGoalId || ''}
-                onChange={e => {
-                  setSelectedGoalId(e.target.value || null);
-                  setSelectedResourceId(null);
-                  setResourceElements([]);
-                  setIsCreatingNew(false);
-                }}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">Choose a learning goal...</option>
-                {learningGoals.map(goal => (
-                  <option key={goal.id} value={goal.id}>{goal.title}</option>
-                ))}
-              </select>
-            </div>
+            {/* Step 1: Learning Goal Selector - Table View */}
+            {!selectedGoalId && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Step 1: Select Learning Goal</h3>
+                </div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Title</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Resources</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {learningGoals.map(goal => {
+                      const resources = resourcesPerGoal[goal.id] || [];
+                      return (
+                        <tr key={goal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="px-4 py-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{goal.title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{goal.description}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{resources.length} resource(s)</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              goal.hasContent 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                            }`}>
+                              {goal.hasContent ? 'Has Content' : 'Placeholder'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedGoalId(goal.id);
+                                setSelectedResourceId(null);
+                                setResourceElements([]);
+                                setIsCreatingNew(false);
+                              }}
+                              className="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 rounded"
+                            >
+                              Select
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Step 2: Resource List */}
             {selectedGoalId && !selectedResourceId && !isCreatingNew && (
@@ -1486,7 +1562,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             <div className="flex items-center justify-end gap-2">
                               {resource.status === 'draft' && (
                                 <button
-                                  onClick={() => handlePublishResource(resource.id, 'experts')}
+                                  onClick={() => openPublishModal(resource.id, 'experts')}
                                   className="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
                                 >
                                   → Experts
@@ -1494,7 +1570,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               )}
                               {resource.status === 'experts' && (
                                 <button
-                                  onClick={() => handlePublishResource(resource.id, 'closedBeta')}
+                                  onClick={() => openPublishModal(resource.id, 'closedBeta')}
                                   className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
                                 >
                                   → Closed Beta
@@ -1502,7 +1578,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               )}
                               {resource.status === 'closedBeta' && (
                                 <button
-                                  onClick={() => handlePublishResource(resource.id, 'published')}
+                                  onClick={() => openPublishModal(resource.id, 'published')}
                                   className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200"
                                 >
                                   → Publish
@@ -1890,31 +1966,79 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
               </div>
             </div>
 
-            {/* Learning Goal Selector */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Select Learning Goal</label>
-              <select
-                value={selectedQuizGoalId || ''}
-                onChange={e => {
-                  setSelectedQuizGoalId(e.target.value || null);
-                  setEditingQuestionId(null);
-                }}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">Choose a learning goal...</option>
-                {allLearningGoals.map(goal => (
-                  <option key={goal.id} value={goal.id}>{goal.title}</option>
-                ))}
-              </select>
-            </div>
+            {/* Learning Goal Selector - Table View */}
+            {!selectedQuizGoalId && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Learning Goal</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Questions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {allLearningGoals.map(goal => {
+                      const quiz = quizData.find(q => q.learningGoalId === goal.id);
+                      const questionCount = quiz?.questions.length || 0;
+                      return (
+                        <tr key={goal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="px-4 py-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{goal.title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{goal.description}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{questionCount} question(s)</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              questionCount > 0 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                            }`}>
+                              {questionCount > 0 ? 'Has Quiz' : 'No Quiz'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedQuizGoalId(goal.id);
+                                setEditingQuestionId(null);
+                              }}
+                              className="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 rounded"
+                            >
+                              {questionCount > 0 ? 'Edit Quiz' : 'Create Quiz'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Quiz Editor */}
             {selectedQuizGoalId && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Questions for: {allLearningGoals.find(g => g.id === selectedQuizGoalId)?.title}
-                  </h4>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedQuizGoalId(null);
+                        setEditingQuestionId(null);
+                      }}
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    >
+                      ← Back
+                    </button>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                      Questions for: {allLearningGoals.find(g => g.id === selectedQuizGoalId)?.title}
+                    </h4>
+                  </div>
                   <button
                     onClick={() => {
                       const newQuestion: QuizQuestion = {
@@ -2168,6 +2292,108 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </div>
         )}
       </div>
+
+      {/* Publish Confirmation Modal */}
+      {publishModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className={`px-6 py-4 ${
+              publishModal.targetStatus === 'experts' ? 'bg-purple-600' :
+              publishModal.targetStatus === 'closedBeta' ? 'bg-yellow-500' :
+              'bg-green-600'
+            }`}>
+              <h3 className="text-lg font-semibold text-white">
+                {publishModal.targetStatus === 'experts' ? '👨‍🔬 Send to Experts' :
+                 publishModal.targetStatus === 'closedBeta' ? '🧪 Send to Closed Beta' :
+                 '🌍 Publish to Everyone'}
+              </h3>
+            </div>
+            
+            {/* Content */}
+            <div className="px-6 py-5 space-y-4">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="font-medium mb-2">You are about to:</p>
+                <div className={`p-3 rounded-lg ${
+                  publishModal.targetStatus === 'experts' ? 'bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800' :
+                  publishModal.targetStatus === 'closedBeta' ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' :
+                  'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                }`}>
+                  <p className="font-medium text-gray-900 dark:text-white mb-1">
+                    "{publishModal.resourceTitle}"
+                  </p>
+                  <p className="text-sm">
+                    {publishModal.targetStatus === 'experts' && (
+                      <>Send notification emails to <strong>{getAudienceCount('experts')} expert reviewers</strong> asking for their feedback.</>
+                    )}
+                    {publishModal.targetStatus === 'closedBeta' && (
+                      <>Send notification emails to <strong>{getAudienceCount('closedBeta')} beta testers</strong> from partner universities.</>
+                    )}
+                    {publishModal.targetStatus === 'published' && (
+                      <>Make this resource <strong>publicly available</strong> to all registered users.</>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <span className="text-xl">⚠️</span>
+                <div className="text-sm text-amber-800 dark:text-amber-200">
+                  <p className="font-medium">This action will send emails!</p>
+                  <p className="text-xs mt-1">
+                    {publishModal.targetStatus === 'experts' && 'Expert reviewers will receive an email notification with a link to review this resource.'}
+                    {publishModal.targetStatus === 'closedBeta' && 'Beta testers will receive an email notification that new content is available for testing.'}
+                    {publishModal.targetStatus === 'published' && 'This resource will become visible to all users immediately.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Acknowledgment checkbox */}
+              <label className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                <input
+                  type="checkbox"
+                  checked={publishModal.acknowledged}
+                  onChange={(e) => setPublishModal({ ...publishModal, acknowledged: e.target.checked })}
+                  className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>I have tested this resource</strong> and I'm ready to collect feedback from {
+                    publishModal.targetStatus === 'experts' ? 'expert reviewers' :
+                    publishModal.targetStatus === 'closedBeta' ? 'beta testers' :
+                    'the public'
+                  }.
+                </span>
+              </label>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setPublishModal({ isOpen: false, resourceId: null, resourceTitle: '', targetStatus: null, acknowledged: false })}
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmPublish}
+                disabled={!publishModal.acknowledged}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${
+                  publishModal.acknowledged
+                    ? publishModal.targetStatus === 'experts' ? 'bg-purple-600 hover:bg-purple-700' :
+                      publishModal.targetStatus === 'closedBeta' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                      'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {publishModal.targetStatus === 'experts' ? '📧 Send to Experts' :
+                 publishModal.targetStatus === 'closedBeta' ? '📧 Send to Beta Testers' :
+                 '🚀 Publish Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
