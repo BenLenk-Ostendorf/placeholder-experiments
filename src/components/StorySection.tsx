@@ -74,11 +74,15 @@ export default function StorySection({
                 alt={imageAlt}
                 width={containerSize}
                 height={containerSize}
+                quality={100}
+                priority
                 className="w-full h-full"
                 style={{ 
                   objectFit: imageObjectFit,
-                  objectPosition: objectPosition
+                  objectPosition: objectPosition,
+                  imageRendering: 'crisp-edges'
                 }}
+                unoptimized
               />
             </div>
           </div>
