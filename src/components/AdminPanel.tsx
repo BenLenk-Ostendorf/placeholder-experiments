@@ -1983,26 +1983,44 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               </div>
 
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Options (check the correct answer)</label>
+                                <div className="flex items-center justify-between mb-2">
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">Answer Options (check all correct answers)</label>
+                                  <button
+                                    onClick={() => {
+                                      const newOptionId = String.fromCharCode(97 + question.options.length); // a, b, c, d, e...
+                                      setQuizData(quizData.map(q => 
+                                        q.learningGoalId === selectedQuizGoalId
+                                          ? { ...q, questions: q.questions.map(qq => 
+                                              qq.id === question.id 
+                                                ? { ...qq, options: [...qq.options, { id: newOptionId, text: 'New option', isCorrect: false }] }
+                                                : qq
+                                            )}
+                                          : q
+                                      ));
+                                    }}
+                                    className="px-2 py-1 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600"
+                                  >
+                                    + Add Option
+                                  </button>
+                                </div>
                                 <div className="space-y-2">
                                   {question.options.map((option, oIndex) => (
                                     <div key={option.id} className="flex items-center gap-2">
                                       <input
-                                        type="radio"
-                                        name={`correct-${question.id}`}
+                                        type="checkbox"
                                         checked={option.isCorrect}
                                         onChange={() => {
                                           setQuizData(quizData.map(q => 
                                             q.learningGoalId === selectedQuizGoalId
                                               ? { ...q, questions: q.questions.map(qq => 
                                                   qq.id === question.id 
-                                                    ? { ...qq, options: qq.options.map(o => ({ ...o, isCorrect: o.id === option.id })) }
+                                                    ? { ...qq, options: qq.options.map(o => o.id === option.id ? { ...o, isCorrect: !o.isCorrect } : o) }
                                                     : qq
                                                 )}
                                               : q
                                           ));
                                         }}
-                                        className="w-4 h-4 text-green-600"
+                                        className="w-4 h-4 text-green-600 rounded"
                                       />
                                       <span className="text-xs text-gray-500 w-4">{String.fromCharCode(65 + oIndex)}.</span>
                                       <input
@@ -2025,9 +2043,33 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                             : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
                                         } text-gray-900 dark:text-white`}
                                       />
+                                      <button
+                                        onClick={() => {
+                                          if (question.options.length <= 2) {
+                                            alert('Must have at least 2 options');
+                                            return;
+                                          }
+                                          setQuizData(quizData.map(q => 
+                                            q.learningGoalId === selectedQuizGoalId
+                                              ? { ...q, questions: q.questions.map(qq => 
+                                                  qq.id === question.id 
+                                                    ? { ...qq, options: qq.options.filter(o => o.id !== option.id) }
+                                                    : qq
+                                                )}
+                                              : q
+                                          ));
+                                        }}
+                                        className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600"
+                                        title="Remove this option"
+                                      >
+                                        ×
+                                      </button>
                                     </div>
                                   ))}
                                 </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  {question.options.filter(o => o.isCorrect).length} correct answer(s) selected
+                                </p>
                               </div>
 
                               <div>
@@ -2056,16 +2098,21 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                     key={option.id}
                                     className={`flex items-center gap-2 px-2 py-1 rounded text-sm ${
                                       option.isCorrect
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-medium'
                                         : 'text-gray-600 dark:text-gray-400'
                                     }`}
                                   >
                                     <span className="font-medium">{String.fromCharCode(65 + oIndex)}.</span>
                                     <span>{option.text}</span>
-                                    {option.isCorrect && <span className="ml-auto text-green-600">✓</span>}
+                                    {option.isCorrect && <span className="ml-auto text-green-600 font-bold">✓ Correct</span>}
                                   </div>
                                 ))}
                               </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                Correct answers: {question.options.filter(o => o.isCorrect).map((o, i, arr) => 
+                                  String.fromCharCode(65 + question.options.indexOf(o))
+                                ).join(', ')}
+                              </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                                 Explanation: {question.explanation}
                               </p>
