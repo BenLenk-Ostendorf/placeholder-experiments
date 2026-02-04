@@ -331,9 +331,23 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
   const [selectedElementForFeedback, setSelectedElementForFeedback] = useState<string | null>(null);
   const [highlightedElementId, setHighlightedElementId] = useState<string | null>(null);
+  const [feedbackPanelTab, setFeedbackPanelTab] = useState<'feedback' | 'ratings'>('feedback');
   
   // Feedback data state (shared between tabs)
   const [feedbackData, setFeedbackData] = useState<FeedbackEntry[]>(initialFeedbackData);
+
+  // Mock ratings data for resources
+  const [resourceRatings] = useState([
+    { id: 'r1', elementId: 'step-1', rating: 4.5, count: 23, label: 'Spezi\'s complaint' },
+    { id: 'r2', elementId: 'step-2', rating: 4.8, count: 21, label: 'Puck\'s response' },
+    { id: 'r3', elementId: 'step-3', rating: 3.9, count: 19, label: 'Trust Survey' },
+    { id: 'r4', elementId: 'step-4', rating: 4.2, count: 18, label: 'Trust Analysis' },
+    { id: 'r5', elementId: 'step-5', rating: 4.6, count: 17, label: 'Token Explanation' },
+    { id: 'r6', elementId: 'step-6', rating: 4.1, count: 15, label: 'Token Visual' },
+    { id: 'r7', elementId: 'step-7', rating: 4.7, count: 14, label: 'Spinner Visual' },
+    { id: 'r8', elementId: 'step-7.5', rating: 4.9, count: 22, label: 'Token Simulator' },
+    { id: 'r9', elementId: 'step-9', rating: 4.3, count: 20, label: 'Final Quiz' },
+  ]);
 
   // Publishing tab state
   const [publishSubTab, setPublishSubTab] = useState<'groups' | 'resources'>('groups');
@@ -1261,21 +1275,48 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   {/* Feedback Panel (right column - only when showFeedbackPanel is true) */}
                   {showFeedbackPanel && (
                     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                          {selectedElementForFeedback ? `Feedback for ${selectedElementForFeedback}` : 'All Feedback'}
-                        </h3>
-                        {selectedElementForFeedback && (
-                          <button
-                            onClick={() => setSelectedElementForFeedback(null)}
-                            className="text-xs text-gray-500 hover:text-gray-700"
-                          >
-                            Show all
-                          </button>
-                        )}
+                      {/* Tab Navigation */}
+                      <div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setFeedbackPanelTab('feedback')}
+                          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                            feedbackPanelTab === 'feedback'
+                              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                          }`}
+                        >
+                          💬 Feedback
+                        </button>
+                        <button
+                          onClick={() => setFeedbackPanelTab('ratings')}
+                          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                            feedbackPanelTab === 'ratings'
+                              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                          }`}
+                        >
+                          ⭐ Ratings
+                        </button>
                       </div>
+
+                      {/* Feedback Tab Content */}
+                      {feedbackPanelTab === 'feedback' && (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                              {selectedElementForFeedback ? `Feedback for ${selectedElementForFeedback}` : 'All Feedback'}
+                            </h3>
+                            {selectedElementForFeedback && (
+                              <button
+                                onClick={() => setSelectedElementForFeedback(null)}
+                                className="text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Show all
+                              </button>
+                            )}
+                          </div>
                       
-                      <div className="space-y-3 max-h-[650px] overflow-y-auto">
+                          <div className="space-y-3 max-h-[600px] overflow-y-auto">
                         {(() => {
                           const relevantFeedback = feedbackData.filter(f => {
                             // Only show feedback for elements in current resource
@@ -1359,7 +1400,88 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             );
                           });
                         })()}
-                      </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Ratings Tab Content */}
+                      {feedbackPanelTab === 'ratings' && (
+                        <div className="space-y-3 max-h-[650px] overflow-y-auto">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Element Ratings</h3>
+                            <span className="text-xs text-gray-500">Avg. user ratings</span>
+                          </div>
+                          
+                          {/* Overall Rating */}
+                          <div className="p-3 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-amber-900 dark:text-amber-100">Overall Resource Rating</span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map(star => (
+                                    <svg key={star} className={`w-4 h-4 ${star <= 4.4 ? 'text-amber-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                                <span className="text-sm font-bold text-amber-700 dark:text-amber-300">4.4</span>
+                                <span className="text-xs text-amber-600 dark:text-amber-400">(169 ratings)</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Individual Element Ratings */}
+                          {resourceRatings.map(item => (
+                            <div
+                              key={item.id}
+                              onClick={() => {
+                                setHighlightedElementId(item.elementId);
+                                setSelectedElementForFeedback(item.elementId);
+                                setTimeout(() => {
+                                  const element = document.querySelector(`[data-element-id="${item.elementId}"]`);
+                                  if (element) {
+                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                  }
+                                }, 100);
+                              }}
+                              className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-mono text-gray-500">{item.elementId}</span>
+                                <span className="text-xs text-gray-400">{item.count} ratings</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                      <svg key={star} className={`w-3.5 h-3.5 ${star <= Math.round(item.rating) ? 'text-amber-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                      </svg>
+                                    ))}
+                                  </div>
+                                  <span className={`text-sm font-medium ${
+                                    item.rating >= 4.5 ? 'text-green-600 dark:text-green-400' :
+                                    item.rating >= 4.0 ? 'text-amber-600 dark:text-amber-400' :
+                                    'text-orange-600 dark:text-orange-400'
+                                  }`}>{item.rating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                              {/* Rating bar */}
+                              <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full ${
+                                    item.rating >= 4.5 ? 'bg-green-500' :
+                                    item.rating >= 4.0 ? 'bg-amber-500' :
+                                    'bg-orange-500'
+                                  }`}
+                                  style={{ width: `${(item.rating / 5) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
