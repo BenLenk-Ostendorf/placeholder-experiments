@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { skillTreeNodes, SkillNode } from './SkillTree';
 
 interface FeedbackEntry {
   id: string;
@@ -11,10 +12,133 @@ interface FeedbackEntry {
   text: string;
   timestamp: string;
   university: string;
+  status: 'new' | 'solved' | 'rejected';
 }
 
-// Mock data for the feedback table
-const mockFeedbackData: FeedbackEntry[] = [
+// Content element types
+type ContentElementType = 'dialogue' | 'explanation' | 'interactive';
+
+interface ContentElement {
+  id: string;
+  type: ContentElementType;
+  // For dialogue
+  character?: 'spezi' | 'puck';
+  emotion?: string;
+  text?: string;
+  // For explanation
+  title?: string;
+  content?: string[];
+  visualType?: string;
+  // For interactive
+  interactiveType?: string;
+}
+
+interface ResourceItem {
+  id: string;
+  name: string;
+  type: 'Story-driven Course' | 'Video Course' | 'Quiz';
+  status: 'draft' | 'experts' | 'closedBeta' | 'published';
+  lastModified: string;
+  elements: ContentElement[];
+}
+
+// Mock learning goals from skill tree
+const learningGoals = [
+  { id: 'ai-text-generation', title: 'Understanding How AI Produces Text' },
+  { id: 'ai-ethics', title: 'AI Ethics Fundamentals' },
+  { id: 'prompt-basics', title: 'Prompt Engineering Basics' },
+  { id: 'ai-limitations', title: 'Understanding AI Limitations' },
+  { id: 'ai-bias', title: 'Recognizing AI Bias' },
+];
+
+// Character emotions with available images from public/resources/faces/
+const characterEmotions: Record<string, string[]> = {
+  spezi: ['frustrated', 'confused', 'understanding'],
+  puck: ['tea', 'asking', 'explaining', 'pointing', 'evil_smile'],
+};
+
+// Map emotion to image path
+const getCharacterImage = (character: string, emotion: string): string => {
+  const basePath = '/resources/faces';
+  if (character === 'spezi') {
+    const validEmotions = ['frustrated', 'confused', 'understanding'];
+    const safeEmotion = validEmotions.includes(emotion) ? emotion : 'confused';
+    return `${basePath}/spezi/spezi_${safeEmotion}.png`;
+  } else {
+    const validEmotions = ['tea', 'asking', 'explaining', 'pointing', 'evil_smile'];
+    const safeEmotion = validEmotions.includes(emotion) ? emotion : 'explaining';
+    return `${basePath}/puck/puck_${safeEmotion}.png`;
+  }
+};
+
+// Resources per learning goal
+const resourcesPerGoal: Record<string, ResourceItem[]> = {
+  'ai-text-generation': [
+    {
+      id: 'res-ai-text-story',
+      name: 'Story-driven Course: Spezi & Dr. Puck',
+      type: 'Story-driven Course',
+      status: 'published',
+      lastModified: '2026-01-27',
+      elements: [
+        { id: 'step-1', type: 'dialogue', character: 'spezi', emotion: 'frustrated', text: "ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?" },
+        { id: 'step-2', type: 'dialogue', character: 'puck', emotion: 'tea', text: "(sips his Yorkshire Tea) Welllll... and you're surprised?" },
+        { id: 'step-3', type: 'dialogue', character: 'spezi', emotion: 'frustrated', text: "Same prompt as last week! It was perfect then!" },
+        { id: 'step-3.1', type: 'dialogue', character: 'puck', emotion: 'asking', text: "Tell me – how often do you think an LLM produces the same answer for the same prompt?" },
+        { id: 'step-3.2', type: 'interactive', interactiveType: 'TrustSurvey' },
+        { id: 'step-4-analysis', type: 'interactive', interactiveType: 'TrustAnalysis' },
+        { id: 'step-4', type: 'dialogue', character: 'spezi', emotion: 'confused', text: "But I thought they were consistent! The same prompt should give the same answer, right?" },
+        { id: 'step-4.1', type: 'dialogue', character: 'puck', emotion: 'explaining', text: "...that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..." },
+        { id: 'step-5', type: 'dialogue', character: 'puck', emotion: 'explaining', text: "To understand this, we first need to talk about 'tokens'..." },
+        { id: 'step-5.1', type: 'dialogue', character: 'spezi', emotion: 'confused', text: "Tokens? Never heard of them." },
+        { id: 'step-6', type: 'explanation', title: 'Understanding Tokens', content: [
+          "Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks.",
+          "When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before.",
+          "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
+        ], visualType: 'TokenVisual' },
+        { id: 'step-6.1', type: 'dialogue', character: 'puck', emotion: 'asking', text: "Now, here's the key: how does the AI choose which token comes next?" },
+        { id: 'step-7', type: 'dialogue', character: 'spezi', emotion: 'confused', text: "I assume it just picks the most likely word?" },
+        { id: 'step-7.1', type: 'dialogue', character: 'puck', emotion: 'pointing', text: "Not quite! It uses something called a probability distribution. Let me show you with a visual..." },
+        { id: 'step-7.2', type: 'explanation', title: 'Understanding Probability Distributions', content: [
+          "A probability distribution is just a fancy way of saying 'some options are more likely than others'. Think of a spinner wheel: if one section takes up half the wheel, it's much more likely to land there than a tiny section.",
+          "For AI text generation, each word position has its own spinner - with thousands of sections! Some words (likely ones) have big sections, others (unlikely ones) have tiny sections.",
+          "The AI 'spins the wheel' to pick each word. That's why the same prompt can give different results - each spin is random! Try spinning the wheel below to see how it works."
+        ], visualType: 'SpinnerVisual' },
+        { id: 'step-7.5', type: 'interactive', interactiveType: 'TokenSimulator' },
+        { id: 'step-8', type: 'dialogue', character: 'puck', emotion: 'explaining', text: "NNNAAAJAAA... technically speaking, you've just observed how the model makes sequential token predictions. Each choice influences the probability distribution of subsequent tokens - remember the spinner wheel analogy - which explains the variability in output." },
+        { id: 'step-8.1', type: 'dialogue', character: 'spezi', emotion: 'understanding', text: "Oh... so that's why ChatGPT gave me different results with the same prompt. It's making probabilistic choices each time, not just picking the same thing." },
+        { id: 'step-8.2', type: 'dialogue', character: 'puck', emotion: 'formal', text: "To be precise, yes. Now, let's assess your understanding with a brief quiz." },
+        { id: 'step-9', type: 'interactive', interactiveType: 'FinalQuiz' },
+        { id: 'step-10', type: 'interactive', interactiveType: 'LearningComplete' },
+      ],
+    },
+  ],
+  'ai-ethics': [
+    {
+      id: 'res-ethics-story',
+      name: 'Story-driven Course: Ethics Introduction',
+      type: 'Story-driven Course',
+      status: 'closedBeta',
+      lastModified: '2026-01-26',
+      elements: [
+        { id: 'e-step-1', type: 'dialogue', character: 'puck', emotion: 'explaining', text: "Let's talk about AI ethics..." },
+      ],
+    },
+  ],
+  'prompt-basics': [],
+  'ai-limitations': [],
+  'ai-bias': [],
+};
+
+// Mock audience data
+const mockAudiences: Record<string, string[]> = {
+  experts: ['expert1@university.edu', 'expert2@research.org', 'professor@tu-munich.de'],
+  closedBeta: ['beta1@test.com', 'beta2@uni.de', 'beta3@student.edu', 'beta4@research.org'],
+  published: [],
+};
+
+// Initial mock data for the feedback table (will be managed with state)
+const initialFeedbackData: FeedbackEntry[] = [
   {
     id: '1',
     learningObjective: 'Understanding How AI Produces Text',
@@ -23,7 +147,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'generalFeedback',
     text: 'The opening dialogue is engaging but could use more context about what Spezi was trying to do.',
     timestamp: '2026-01-27 10:30',
-    university: 'TU Munich',
+    university: 'TU München',
+    status: 'new',
   },
   {
     id: '2',
@@ -33,7 +158,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'technicalError',
     text: 'The survey options are cut off on mobile devices.',
     timestamp: '2026-01-27 11:15',
-    university: 'LMU Munich',
+    university: 'RWTH Aachen',
+    status: 'new',
   },
   {
     id: '3',
@@ -43,7 +169,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'falseInformation',
     text: 'Tokens can also include special characters like emojis, this should be mentioned.',
     timestamp: '2026-01-27 12:00',
-    university: 'TU Munich',
+    university: 'Universität Tübingen',
+    status: 'new',
   },
   {
     id: '4',
@@ -53,7 +180,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'generalFeedback',
     text: 'The spinner visual is great! Maybe add more examples with different probability distributions.',
     timestamp: '2026-01-27 14:20',
-    university: 'University of Stuttgart',
+    university: 'DHBW Heilbronn',
+    status: 'solved',
   },
   {
     id: '5',
@@ -63,7 +191,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'technicalError',
     text: 'Token simulator wheel sometimes gets stuck when clicking rapidly.',
     timestamp: '2026-01-27 15:45',
-    university: 'RWTH Aachen',
+    university: 'HHU Düsseldorf',
+    status: 'new',
   },
   {
     id: '6',
@@ -73,7 +202,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'falseInformation',
     text: 'Question 2 answer explanation could be clearer about why option B is incorrect.',
     timestamp: '2026-01-27 16:30',
-    university: 'TU Munich',
+    university: 'FernUni Hagen',
+    status: 'rejected',
   },
   {
     id: '7',
@@ -83,7 +213,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'generalFeedback',
     text: 'Video quality is good but subtitles are slightly out of sync.',
     timestamp: '2026-01-26 09:00',
-    university: 'LMU Munich',
+    university: 'DFKI',
+    status: 'new',
   },
   {
     id: '8',
@@ -93,7 +224,8 @@ const mockFeedbackData: FeedbackEntry[] = [
     flag: 'technicalError',
     text: 'Image of Dr. Puck not loading correctly on Safari.',
     timestamp: '2026-01-26 11:30',
-    university: 'University of Heidelberg',
+    university: 'Stifterverband',
+    status: 'new',
   },
 ];
 
@@ -108,48 +240,245 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'feedback' | 'create' | 'publish'>('feedback');
+  const [activeTab, setActiveTab] = useState<'feedback' | 'resource' | 'publishing' | 'learningGoals' | 'assessment'>('feedback');
   const [filterFlag, setFilterFlag] = useState<string | null>(null);
   const [filterObjective, setFilterObjective] = useState<string | null>(null);
   const [filterUniversity, setFilterUniversity] = useState<string | null>(null);
 
-  const uniqueObjectives = [...new Set(mockFeedbackData.map(f => f.learningObjective))];
-  const uniqueUniversities = [...new Set(mockFeedbackData.map(f => f.university))];
+  // Resource tab state - new workflow
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
+  const [resourceElements, setResourceElements] = useState<ContentElement[]>([]);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [editingElementId, setEditingElementId] = useState<string | null>(null);
+  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
+  const [selectedElementForFeedback, setSelectedElementForFeedback] = useState<string | null>(null);
+  const [highlightedElementId, setHighlightedElementId] = useState<string | null>(null);
+  
+  // Feedback data state (shared between tabs)
+  const [feedbackData, setFeedbackData] = useState<FeedbackEntry[]>(initialFeedbackData);
 
-  const filteredData = mockFeedbackData.filter(entry => {
+  // Publishing tab state
+  const [publishSubTab, setPublishSubTab] = useState<'groups' | 'resources'>('groups');
+  const [publishAudienceLevel, setPublishAudienceLevel] = useState<'experts' | 'closedBeta' | 'published'>('experts');
+  const [audienceEmails, setAudienceEmails] = useState<Record<string, string[]>>({ ...mockAudiences });
+  const [newEmail, setNewEmail] = useState('');
+  const [importSuccess, setImportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Publishable resources state
+  const [publishableResources, setPublishableResources] = useState([
+    { id: 'res-1', title: 'Understanding How AI Produces Text', type: 'Story-driven Course', status: 'published' as const, lastModified: '2026-01-27' },
+    { id: 'res-2', title: 'AI Ethics Fundamentals', type: 'Story-driven Course', status: 'closedBeta' as const, lastModified: '2026-01-26' },
+    { id: 'res-3', title: 'Prompt Engineering Basics', type: 'Story-driven Course', status: 'experts' as const, lastModified: '2026-01-25' },
+    { id: 'res-4', title: 'Understanding AI Limitations', type: 'Story-driven Course', status: 'draft' as const, lastModified: '2026-01-24' },
+    { id: 'res-5', title: 'Recognizing AI Bias', type: 'Video Course', status: 'draft' as const, lastModified: '2026-01-23' },
+    { id: 'res-6', title: 'AI in Academic Writing', type: 'Story-driven Course', status: 'experts' as const, lastModified: '2026-01-22' },
+  ]);
+
+  // Learning Goals tab state
+  const [allLearningGoals, setAllLearningGoals] = useState<SkillNode[]>([...skillTreeNodes]);
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
+  const [isCreatingGoal, setIsCreatingGoal] = useState(false);
+  const [goalFormData, setGoalFormData] = useState<Partial<SkillNode>>({
+    id: '',
+    title: '',
+    description: '',
+    hint: '',
+    prerequisites: [],
+    hasContent: false,
+  });
+  const [goalDependents, setGoalDependents] = useState<string[]>([]); // Goals that depend on this goal
+
+  const uniqueObjectives = [...new Set(feedbackData.map(f => f.learningObjective))];
+  const uniqueUniversities = [...new Set(feedbackData.map(f => f.university))];
+  
+  // Update feedback status
+  const updateFeedbackStatus = (feedbackId: string, status: FeedbackEntry['status']) => {
+    setFeedbackData(feedbackData.map(f => f.id === feedbackId ? { ...f, status } : f));
+  };
+  
+  // Navigate from Feedback tab to Resource tab with specific element highlighted
+  const navigateToFeedbackElement = (feedback: FeedbackEntry) => {
+    // Find the learning goal
+    const goal = learningGoals.find(g => g.title === feedback.learningObjective);
+    if (goal) {
+      setSelectedGoalId(goal.id);
+      const resources = resourcesPerGoal[goal.id] || [];
+      if (resources.length > 0) {
+        setSelectedResourceId(resources[0].id);
+        setResourceElements([...resources[0].elements]);
+        setIsCreatingNew(false);
+      }
+      setShowFeedbackPanel(true);
+      setHighlightedElementId(feedback.contentId);
+      setSelectedElementForFeedback(feedback.contentId);
+      setActiveTab('resource');
+      
+      // Scroll to element after a brief delay
+      setTimeout(() => {
+        const element = document.querySelector(`[data-element-id="${feedback.contentId}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  };
+
+  // Select a resource to edit
+  const handleSelectResource = (resourceId: string) => {
+    const goal = learningGoals.find(g => g.id === selectedGoalId);
+    if (!goal) return;
+    
+    const resources = resourcesPerGoal[selectedGoalId!] || [];
+    const resource = resources.find(r => r.id === resourceId);
+    if (resource) {
+      setSelectedResourceId(resourceId);
+      setResourceElements([...resource.elements]);
+      setIsCreatingNew(false);
+    }
+  };
+
+  // Create new resource
+  const handleCreateNew = () => {
+    setSelectedResourceId(null);
+    setResourceElements([]);
+    setIsCreatingNew(true);
+  };
+
+  // Back to resource list
+  const handleBackToResourceList = () => {
+    setSelectedResourceId(null);
+    setResourceElements([]);
+    setIsCreatingNew(false);
+  };
+
+  // Add new element at position (default: end)
+  const addElement = (type: ContentElementType, atIndex?: number) => {
+    const newElement: ContentElement = {
+      id: `elem-${Date.now()}`,
+      type,
+      ...(type === 'dialogue' && { character: 'spezi' as const, emotion: 'confused', text: 'Enter text here...' }),
+      ...(type === 'explanation' && { title: 'New Section', content: ['Enter content here...'] }),
+      ...(type === 'interactive' && { interactiveType: 'Custom' }),
+    };
+    
+    if (atIndex !== undefined) {
+      const newElements = [...resourceElements];
+      newElements.splice(atIndex, 0, newElement);
+      setResourceElements(newElements);
+    } else {
+      setResourceElements([...resourceElements, newElement]);
+    }
+    setEditingElementId(newElement.id);
+  };
+
+  // Update element
+  const updateElement = (id: string, updates: Partial<ContentElement>) => {
+    setResourceElements(resourceElements.map(e => e.id === id ? { ...e, ...updates } : e));
+  };
+
+  // Delete element
+  const deleteElement = (id: string) => {
+    setResourceElements(resourceElements.filter(e => e.id !== id));
+  };
+
+  // Move element up/down
+  const moveElement = (id: string, direction: 'up' | 'down') => {
+    const index = resourceElements.findIndex(e => e.id === id);
+    if (direction === 'up' && index > 0) {
+      const newElements = [...resourceElements];
+      [newElements[index - 1], newElements[index]] = [newElements[index], newElements[index - 1]];
+      setResourceElements(newElements);
+    } else if (direction === 'down' && index < resourceElements.length - 1) {
+      const newElements = [...resourceElements];
+      [newElements[index], newElements[index + 1]] = [newElements[index + 1], newElements[index]];
+      setResourceElements(newElements);
+    }
+  };
+
+  // Add email to audience
+  const addEmail = () => {
+    if (newEmail && newEmail.includes('@')) {
+      setAudienceEmails({
+        ...audienceEmails,
+        [publishAudienceLevel]: [...(audienceEmails[publishAudienceLevel] || []), newEmail],
+      });
+      setNewEmail('');
+    }
+  };
+
+  // Remove email from audience
+  const removeEmail = (email: string) => {
+    setAudienceEmails({
+      ...audienceEmails,
+      [publishAudienceLevel]: audienceEmails[publishAudienceLevel].filter(e => e !== email),
+    });
+  };
+
+  // Handle file import (mock)
+  const handleFileImport = () => {
+    setImportSuccess(true);
+    // Mock: Add some fake imported emails
+    setAudienceEmails({
+      ...audienceEmails,
+      [publishAudienceLevel]: [
+        ...(audienceEmails[publishAudienceLevel] || []),
+        'imported1@university.edu',
+        'imported2@university.edu',
+        'imported3@university.edu',
+      ],
+    });
+    setTimeout(() => setImportSuccess(false), 3000);
+  };
+
+  // Handle publishing a resource to a new status
+  const handlePublishResource = (resourceId: string, newStatus: 'experts' | 'closedBeta' | 'published') => {
+    setPublishableResources(resources => 
+      resources.map(r => r.id === resourceId ? { ...r, status: newStatus, lastModified: new Date().toISOString().split('T')[0] } : r)
+    );
+    console.log(`Published resource ${resourceId} to ${newStatus}`);
+  };
+
+  // Navigate to Resource tab and open specific resource in edit mode
+  const navigateToResourceEdit = (resourceTitle: string) => {
+    // Find the matching learning goal
+    const goal = learningGoals.find(g => g.title === resourceTitle);
+    if (goal) {
+      setSelectedGoalId(goal.id);
+      // Find the first resource for this goal
+      const resources = resourcesPerGoal[goal.id] || [];
+      if (resources.length > 0) {
+        setSelectedResourceId(resources[0].id);
+        setResourceElements([...resources[0].elements]);
+        setIsCreatingNew(false);
+      }
+      setActiveTab('resource');
+    }
+  };
+
+  // Filter for status
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  
+  const filteredData = feedbackData.filter(entry => {
     if (filterFlag && entry.flag !== filterFlag) return false;
     if (filterObjective && entry.learningObjective !== filterObjective) return false;
     if (filterUniversity && entry.university !== filterUniversity) return false;
+    if (filterStatus && entry.status !== filterStatus) return false;
     return true;
   });
 
   const handleContentIdClick = (entry: FeedbackEntry) => {
-    // Build URL with parameters for editing mode
-    const params = new URLSearchParams({
-      mode: 'edit',
-      step: entry.contentId,
-      highlight: entry.contentId,
-      feedbackId: entry.id,
-    });
-    
-    // Map learning objectives to node IDs
-    const objectiveToNodeId: Record<string, string> = {
-      'Understanding How AI Produces Text': 'ai-text-generation',
-      'AI Ethics Fundamentals': 'ai-ethics',
-      'Prompt Engineering Basics': 'prompt-basics',
-    };
-    
-    const nodeId = objectiveToNodeId[entry.learningObjective] || 'ai-text-generation';
-    const url = `/?goal=${nodeId}&${params.toString()}`;
-    
-    // Open in new tab
-    window.open(url, '_blank');
+    // Navigate to Resource tab with feedback panel open and element highlighted
+    navigateToFeedbackElement(entry);
   };
 
   const tabs = [
-    { id: 'feedback', label: 'Look at Feedback', icon: '📋' },
-    { id: 'create', label: 'Create Content', icon: '✏️' },
-    { id: 'publish', label: 'Publish Content', icon: '📤' },
+    { id: 'feedback', label: 'Feedback', icon: '📋' },
+    { id: 'resource', label: 'Resource', icon: '✏️' },
+    { id: 'publishing', label: 'Publishing', icon: '📤' },
+    { id: 'learningGoals', label: 'Learning Goals', icon: '🎯' },
+    { id: 'assessment', label: 'Assessment', icon: '📝' },
   ] as const;
 
   return (
@@ -198,6 +527,21 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           <div className="space-y-4">
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  Filter by Status
+                </label>
+                <select
+                  value={filterStatus || ''}
+                  onChange={e => setFilterStatus(e.target.value || null)}
+                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="new">🆕 New</option>
+                  <option value="solved">✅ Solved</option>
+                  <option value="rejected">❌ Rejected</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                   Filter by Flag
@@ -272,6 +616,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         Flag
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                         Feedback Text
                       </th>
                     </tr>
@@ -280,7 +627,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                     {filteredData.map(entry => {
                       const flagInfo = flagLabels[entry.flag];
                       return (
-                        <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                        <tr key={entry.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 ${entry.status === 'solved' ? 'opacity-50' : ''}`}>
                           <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                             {entry.university}
                           </td>
@@ -294,7 +641,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             <button
                               onClick={() => handleContentIdClick(entry)}
                               className="text-sm font-mono text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300"
-                              title="Open in editing mode (new tab)"
+                              title="Jump to element in Resource tab"
                             >
                               {entry.contentId}
                             </button>
@@ -310,6 +657,26 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                               <span>{flagInfo.icon}</span>
                               {flagInfo.label}
                             </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={entry.status}
+                              onChange={e => updateFeedbackStatus(entry.id, e.target.value as FeedbackEntry['status'])}
+                              className={`px-2 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
+                                entry.status === 'new'
+                                  ? 'bg-yellow-500 text-white'
+                                  : entry.status === 'solved'
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-red-500 text-white'
+                              }`}
+                              style={{
+                                // Style options with different colors
+                              }}
+                            >
+                              <option value="new" className="bg-yellow-500 text-white">🆕 New</option>
+                              <option value="solved" className="bg-green-500 text-white">✅ Solved</option>
+                              <option value="rejected" className="bg-red-500 text-white">❌ Rejected</option>
+                            </select>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-md">
                             <p className="line-clamp-2">{entry.text}</p>
@@ -327,30 +694,1040 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </div>
         )}
 
-        {activeTab === 'create' && (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-3xl">✏️</span>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Create Content
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Coming Soon
-              </p>
+        {activeTab === 'resource' && (
+          <div className="space-y-6">
+            {/* Step 1: Learning Goal Selector */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Step 1: Select Learning Goal</h3>
+              <select
+                value={selectedGoalId || ''}
+                onChange={e => {
+                  setSelectedGoalId(e.target.value || null);
+                  setSelectedResourceId(null);
+                  setResourceElements([]);
+                  setIsCreatingNew(false);
+                }}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Choose a learning goal...</option>
+                {learningGoals.map(goal => (
+                  <option key={goal.id} value={goal.id}>{goal.title}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Step 2: Resource List */}
+            {selectedGoalId && !selectedResourceId && !isCreatingNew && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    Step 2: Select or Create Resource
+                  </h3>
+                  <button
+                    onClick={handleCreateNew}
+                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    + Create New Resource
+                  </button>
+                </div>
+                
+                {(resourcesPerGoal[selectedGoalId] || []).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <p className="text-sm">No resources yet for this learning goal.</p>
+                    <p className="text-xs mt-1">Click "Create New Resource" to get started.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(resourcesPerGoal[selectedGoalId] || []).map(resource => (
+                      <button
+                        key={resource.id}
+                        onClick={() => handleSelectResource(resource.id)}
+                        className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-left"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{resource.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{resource.type} • {resource.elements.length} elements</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            resource.status === 'published' ? 'bg-green-100 text-green-700' :
+                            resource.status === 'closedBeta' ? 'bg-yellow-100 text-yellow-700' :
+                            resource.status === 'experts' ? 'bg-purple-100 text-purple-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {resource.status}
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: WYSIWYG Editor */}
+            {selectedGoalId && (selectedResourceId || isCreatingNew) && (
+              <div className="space-y-4">
+                {/* Header with Back button and Show Feedback toggle */}
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => {
+                      handleBackToResourceList();
+                      setShowFeedbackPanel(false);
+                      setHighlightedElementId(null);
+                    }}
+                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    ← Back to resource list
+                  </button>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => {
+                        setShowFeedbackPanel(!showFeedbackPanel);
+                        if (!showFeedbackPanel) {
+                          setSelectedElementForFeedback(null);
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                        showFeedbackPanel
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      💬 {showFeedbackPanel ? 'Hide Feedback' : 'Show Feedback'}
+                    </button>
+                    <button
+                      onClick={() => console.log('Saving resource:', { goalId: selectedGoalId, elements: resourceElements })}
+                      className="px-4 py-1.5 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      Save (not persisted)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Main content area */}
+                <div className={`grid gap-6 ${showFeedbackPanel ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                  {/* WYSIWYG Editor (left/main column) */}
+                  <div className={`${showFeedbackPanel ? 'col-span-2' : ''} bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4`}>
+                    <div className="space-y-2 max-h-[700px] overflow-y-auto">
+                      {/* Insert button at beginning */}
+                      <div className="flex items-center justify-center py-2 group relative">
+                        <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors">
+                          <span className="text-base font-bold">+</span>
+                        </div>
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex gap-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1">
+                          <button onClick={() => addElement('dialogue', 0)} className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded whitespace-nowrap">+ Dialogue</button>
+                          <button onClick={() => addElement('explanation', 0)} className="px-3 py-1.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded whitespace-nowrap">+ Explanation</button>
+                        </div>
+                      </div>
+
+                      {resourceElements.length === 0 && (
+                        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                          <p className="text-sm">No content yet. Click + to add elements.</p>
+                        </div>
+                      )}
+
+                      {resourceElements.map((element, index) => {
+                        const elementFeedback = feedbackData.filter(f => f.contentId === element.id && f.status !== 'solved');
+                        const isHighlighted = highlightedElementId === element.id;
+                        const isSelectedForFeedback = selectedElementForFeedback === element.id;
+                        
+                        return (
+                          <div key={element.id}>
+                            {/* Element wrapper with controls */}
+                            <div
+                              data-element-id={element.id}
+                              onClick={() => showFeedbackPanel && setSelectedElementForFeedback(element.id)}
+                              className={`relative rounded-lg transition-all ${
+                                isHighlighted ? 'ring-2 ring-purple-500 ring-offset-2' :
+                                isSelectedForFeedback && showFeedbackPanel ? 'ring-2 ring-blue-400' : ''
+                              } ${showFeedbackPanel ? 'cursor-pointer' : ''}`}
+                            >
+                              {/* Controls bar - always visible */}
+                              <div className="absolute -top-2 right-2 z-10 flex items-center gap-1 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 px-1">
+                                <span className="px-2 py-0.5 text-[10px] text-gray-400 font-mono">{element.id}</span>
+                                {elementFeedback.length > 0 && (
+                                  <span className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-600 rounded-full">{elementFeedback.length}</span>
+                                )}
+                                <button onClick={() => moveElement(element.id, 'up')} disabled={index === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↑</button>
+                                <button onClick={() => moveElement(element.id, 'down')} disabled={index === resourceElements.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">↓</button>
+                                <button onClick={() => deleteElement(element.id)} className="p-1 text-red-400 hover:text-red-600 text-xs">×</button>
+                              </div>
+
+                              {/* Dialogue element - WYSIWYG with inline editing */}
+                              {element.type === 'dialogue' && (
+                                <div className={`flex gap-3 p-3 ${element.character === 'puck' ? 'flex-row-reverse' : ''}`}>
+                                  {/* Clickable character image - shows combined popup on click */}
+                                  <div className="relative flex-shrink-0">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingElementId(editingElementId === `${element.id}-image` ? null : `${element.id}-image`);
+                                      }}
+                                      className="w-14 h-14 rounded-full overflow-hidden bg-white border-2 border-gray-200 dark:border-gray-600 cursor-pointer hover:border-blue-400 transition-colors"
+                                    >
+                                      <img
+                                        src={getCharacterImage(element.character || 'spezi', element.emotion || 'neutral')}
+                                        alt={`${element.character} ${element.emotion}`}
+                                        className="w-full h-full object-cover object-top"
+                                      />
+                                    </button>
+                                    {/* Combined character/emotion selector on click */}
+                                    {editingElementId === `${element.id}-image` && (
+                                      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 min-w-[140px]">
+                                        <p className="text-[10px] text-gray-500 mb-1">Character</p>
+                                        <select
+                                          value={element.character || 'spezi'}
+                                          onChange={e => {
+                                            updateElement(element.id, { character: e.target.value as 'spezi' | 'puck', emotion: characterEmotions[e.target.value][0] });
+                                          }}
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white mb-2"
+                                        >
+                                          <option value="spezi">Spezi</option>
+                                          <option value="puck">Dr. Puck</option>
+                                        </select>
+                                        <p className="text-[10px] text-gray-500 mb-1">Emotion</p>
+                                        <select
+                                          value={element.emotion || 'neutral'}
+                                          onChange={e => updateElement(element.id, { emotion: e.target.value })}
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        >
+                                          {(characterEmotions[element.character || 'spezi'] || []).map(emotion => (
+                                            <option key={emotion} value={emotion}>{emotion}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Speech bubble with inline editable text */}
+                                  <div className={`flex-1 rounded-lg ${element.character === 'spezi' ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                                    <div className="flex items-center gap-1 px-3 pt-2">
+                                      {/* Clickable character name */}
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingElementId(editingElementId === `${element.id}-name` ? null : `${element.id}-name`);
+                                          }}
+                                          className="text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                                        >
+                                          {element.character === 'spezi' ? 'Spezi' : 'Dr. Puck'}
+                                        </button>
+                                        {editingElementId === `${element.id}-name` && (
+                                          <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 min-w-[100px]">
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateElement(element.id, { character: 'spezi', emotion: characterEmotions['spezi'][0] });
+                                                setEditingElementId(null);
+                                              }}
+                                              className={`w-full px-2 py-1 text-xs text-left rounded ${element.character === 'spezi' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                            >
+                                              Spezi
+                                            </button>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateElement(element.id, { character: 'puck', emotion: characterEmotions['puck'][0] });
+                                                setEditingElementId(null);
+                                              }}
+                                              className={`w-full px-2 py-1 text-xs text-left rounded ${element.character === 'puck' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                            >
+                                              Dr. Puck
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {/* Clickable emotion */}
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingElementId(editingElementId === `${element.id}-emotion` ? null : `${element.id}-emotion`);
+                                          }}
+                                          className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                                        >
+                                          ({element.emotion})
+                                        </button>
+                                        {editingElementId === `${element.id}-emotion` && (
+                                          <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 min-w-[100px]">
+                                            {(characterEmotions[element.character || 'spezi'] || []).map(emotion => (
+                                              <button
+                                                key={emotion}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  updateElement(element.id, { emotion });
+                                                  setEditingElementId(null);
+                                                }}
+                                                className={`w-full px-2 py-1 text-xs text-left rounded ${element.emotion === emotion ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                              >
+                                                {emotion}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <textarea
+                                      value={element.text || ''}
+                                      onChange={e => updateElement(element.id, { text: e.target.value })}
+                                      onClick={e => e.stopPropagation()}
+                                      className="w-full px-3 py-2 text-sm bg-transparent border-0 focus:ring-0 resize-none text-gray-800 dark:text-gray-200"
+                                      rows={Math.max(2, Math.ceil((element.text?.length || 0) / 60))}
+                                      placeholder="Enter dialogue..."
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Explanation element - WYSIWYG with inline editing */}
+                              {element.type === 'explanation' && (
+                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                  <input
+                                    type="text"
+                                    value={element.title || ''}
+                                    onChange={e => updateElement(element.id, { title: e.target.value })}
+                                    className="w-full text-sm font-semibold bg-transparent border-0 focus:ring-0 text-purple-900 dark:text-purple-200 mb-2 placeholder-purple-400"
+                                    placeholder="Section title..."
+                                  />
+                                  {(element.content || []).map((paragraph, pIndex) => (
+                                    <textarea
+                                      key={pIndex}
+                                      value={paragraph}
+                                      onChange={e => {
+                                        const newContent = [...(element.content || [])];
+                                        newContent[pIndex] = e.target.value;
+                                        updateElement(element.id, { content: newContent });
+                                      }}
+                                      className="w-full text-sm bg-transparent border-0 focus:ring-0 resize-none text-purple-800 dark:text-purple-300 mb-2 placeholder-purple-400"
+                                      rows={Math.max(2, Math.ceil(paragraph.length / 80))}
+                                      placeholder="Enter content..."
+                                    />
+                                  ))}
+                                  {element.visualType && (
+                                    <div className="mt-3 p-4 bg-white dark:bg-gray-800 rounded border border-purple-200 dark:border-purple-700 text-center">
+                                      <span className="text-xs text-gray-500">[{element.visualType}]</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Interactive element - placeholder with controls */}
+                              {element.type === 'interactive' && (
+                                <div className="p-6 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
+                                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Interactive: {element.interactiveType}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Insert button after element */}
+                            <div className="flex items-center justify-center py-2 group relative">
+                              <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors">
+                                <span className="text-base font-bold">+</span>
+                              </div>
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex gap-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1">
+                                <button onClick={() => addElement('dialogue', index + 1)} className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded whitespace-nowrap">+ Dialogue</button>
+                                <button onClick={() => addElement('explanation', index + 1)} className="px-3 py-1.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded whitespace-nowrap">+ Explanation</button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Feedback Panel (right column - only when showFeedbackPanel is true) */}
+                  {showFeedbackPanel && (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                          {selectedElementForFeedback ? `Feedback for ${selectedElementForFeedback}` : 'All Feedback'}
+                        </h3>
+                        {selectedElementForFeedback && (
+                          <button
+                            onClick={() => setSelectedElementForFeedback(null)}
+                            className="text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Show all
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3 max-h-[650px] overflow-y-auto">
+                        {(() => {
+                          const relevantFeedback = feedbackData.filter(f => {
+                            // Only show feedback for elements in current resource
+                            const elementIds = resourceElements.map(e => e.id);
+                            if (!elementIds.includes(f.contentId)) return false;
+                            // Filter by selected element if one is selected
+                            if (selectedElementForFeedback && f.contentId !== selectedElementForFeedback) return false;
+                            // Hide solved feedback
+                            if (f.status === 'solved') return false;
+                            return true;
+                          });
+                          
+                          if (relevantFeedback.length === 0) {
+                            return (
+                              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <p className="text-sm">No feedback to display</p>
+                                <p className="text-xs mt-1">{selectedElementForFeedback ? 'This element has no feedback' : 'Click an element to filter'}</p>
+                              </div>
+                            );
+                          }
+                          
+                          return relevantFeedback.map(feedback => {
+                            const flagInfo = flagLabels[feedback.flag];
+                            return (
+                              <div
+                                key={feedback.id}
+                                className={`p-3 rounded-lg border ${
+                                  feedback.flag === 'technicalError' ? 'border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800' :
+                                  feedback.flag === 'falseInformation' ? 'border-orange-200 bg-orange-50 dark:bg-orange-900/10 dark:border-orange-800' :
+                                  'border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-mono text-gray-500">{feedback.contentId}</span>
+                                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                      feedback.flag === 'technicalError' ? 'bg-red-100 text-red-700' :
+                                      feedback.flag === 'falseInformation' ? 'bg-orange-100 text-orange-700' :
+                                      'bg-blue-100 text-blue-700'
+                                    }`}>
+                                      {flagInfo.icon} {flagInfo.label}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{feedback.text}</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-500">{feedback.university}</span>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => updateFeedbackStatus(feedback.id, 'rejected')}
+                                      className="px-2 py-1 text-xs font-medium bg-red-500 text-white hover:bg-red-600 rounded"
+                                    >
+                                      ✗ Reject
+                                    </button>
+                                    <button
+                                      onClick={() => updateFeedbackStatus(feedback.id, 'solved')}
+                                      className="px-2 py-1 text-xs font-medium bg-green-500 text-white hover:bg-green-600 rounded"
+                                    >
+                                      ✓ Solved
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === 'publish' && (
+        {activeTab === 'publishing' && (
+          <div className="space-y-6">
+            {/* Sub-tabs for Publishing */}
+            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setPublishSubTab('groups')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  publishSubTab === 'groups'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                👥 Manage Groups
+              </button>
+              <button
+                onClick={() => setPublishSubTab('resources')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  publishSubTab === 'resources'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                📤 Publish
+              </button>
+            </div>
+
+            {/* Manage Groups Sub-tab */}
+            {publishSubTab === 'groups' && (
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { id: 'experts', label: 'Experts', description: 'Internal reviewers and subject matter experts', icon: '👨‍🔬', color: 'purple' },
+                  { id: 'closedBeta', label: 'Closed Beta', description: 'Selected beta testers from partner universities', icon: '🧪', color: 'yellow' },
+                  { id: 'published', label: 'Public', description: 'Available to all registered users', icon: '🌍', color: 'green' },
+                ].map(group => (
+                  <div
+                    key={group.id}
+                    className={`bg-white dark:bg-gray-800 rounded-lg border p-4 ${
+                      publishAudienceLevel === group.id
+                        ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <button
+                      onClick={() => setPublishAudienceLevel(group.id as typeof publishAudienceLevel)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{group.icon}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{group.label}</span>
+                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
+                          group.color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                          group.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {audienceEmails[group.id]?.length || 0}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{group.description}</p>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {publishSubTab === 'groups' && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    {publishAudienceLevel === 'experts' ? '👨‍🔬 Experts' : 
+                     publishAudienceLevel === 'closedBeta' ? '🧪 Closed Beta' : '🌍 Public'} Group Members
+                  </h3>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {audienceEmails[publishAudienceLevel]?.length || 0} participants
+                  </span>
+                </div>
+
+                {/* Import from file */}
+                <div className="flex gap-2 mb-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,.txt"
+                    className="hidden"
+                    onChange={handleFileImport}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    📁 Import from File
+                  </button>
+                  {importSuccess && (
+                    <span className="flex items-center text-xs text-green-600 dark:text-green-400">
+                      ✓ 3 emails imported!
+                    </span>
+                  )}
+                </div>
+
+                {/* Add email */}
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={e => setNewEmail(e.target.value)}
+                    placeholder="Enter email address..."
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    onKeyDown={e => e.key === 'Enter' && addEmail()}
+                  />
+                  <button
+                    onClick={addEmail}
+                    className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Add Email
+                  </button>
+                </div>
+
+                {/* Email list */}
+                <div className="max-h-[300px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                  {(audienceEmails[publishAudienceLevel] || []).length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                      No participants in this group yet
+                    </p>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Email</th>
+                          <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-300">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {(audienceEmails[publishAudienceLevel] || []).map((email, index) => (
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                            <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{email}</td>
+                            <td className="px-4 py-2 text-right">
+                              <button
+                                onClick={() => removeEmail(email)}
+                                className="text-red-500 hover:text-red-700 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Publish Sub-tab */}
+            {publishSubTab === 'resources' && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Learning Goal</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Resource Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Last Modified</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {publishableResources.map(resource => {
+                      const statusColors: Record<string, string> = {
+                        draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                        experts: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                        closedBeta: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                        published: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                      };
+                      return (
+                        <tr key={resource.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => navigateToResourceEdit(resource.title)}
+                              className="text-sm text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-800 dark:hover:text-blue-300 text-left"
+                              title="Edit this resource"
+                            >
+                              {resource.title}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{resource.type}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${statusColors[resource.status]}`}>
+                              {resource.status === 'closedBeta' ? 'Closed Beta' : resource.status.charAt(0).toUpperCase() + resource.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{resource.lastModified}</td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {resource.status === 'draft' && (
+                                <button
+                                  onClick={() => handlePublishResource(resource.id, 'experts')}
+                                  className="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                                >
+                                  → Experts
+                                </button>
+                              )}
+                              {resource.status === 'experts' && (
+                                <button
+                                  onClick={() => handlePublishResource(resource.id, 'closedBeta')}
+                                  className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                                >
+                                  → Closed Beta
+                                </button>
+                              )}
+                              {resource.status === 'closedBeta' && (
+                                <button
+                                  onClick={() => handlePublishResource(resource.id, 'published')}
+                                  className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                >
+                                  → Publish
+                                </button>
+                              )}
+                              {resource.status === 'published' && (
+                                <span className="text-xs text-gray-500">✓ Published</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'learningGoals' && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Learning Goals</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{allLearningGoals.length} goals in the skill tree</p>
+              </div>
+              {!isCreatingGoal && !editingGoalId && (
+                <button
+                  onClick={() => {
+                    setIsCreatingGoal(true);
+                    setGoalFormData({
+                      id: '',
+                      title: '',
+                      description: '',
+                      hint: '',
+                      prerequisites: [],
+                      hasContent: false,
+                    });
+                    setGoalDependents([]);
+                  }}
+                  className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  + Add Learning Goal
+                </button>
+              )}
+            </div>
+
+            {/* Create/Edit Form */}
+            {(isCreatingGoal || editingGoalId) && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
+                  {isCreatingGoal ? 'Create New Learning Goal' : 'Edit Learning Goal'}
+                </h4>
+                
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Left Column - Basic Info */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        ID (unique identifier)
+                      </label>
+                      <input
+                        type="text"
+                        value={goalFormData.id || ''}
+                        onChange={e => setGoalFormData({ ...goalFormData, id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                        disabled={!!editingGoalId}
+                        placeholder="e.g., ai-ethics-basics"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={goalFormData.title || ''}
+                        onChange={e => setGoalFormData({ ...goalFormData, title: e.target.value })}
+                        placeholder="e.g., AI Ethics Basics"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Description (short)
+                      </label>
+                      <input
+                        type="text"
+                        value={goalFormData.description || ''}
+                        onChange={e => setGoalFormData({ ...goalFormData, description: e.target.value })}
+                        placeholder="Brief description for the skill tree card"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Hint (detailed description for modal)
+                      </label>
+                      <textarea
+                        value={goalFormData.hint || ''}
+                        onChange={e => setGoalFormData({ ...goalFormData, hint: e.target.value })}
+                        placeholder="Detailed hint shown when clicking on the learning goal"
+                        rows={3}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="hasContent"
+                        checked={goalFormData.hasContent || false}
+                        onChange={e => setGoalFormData({ ...goalFormData, hasContent: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <label htmlFor="hasContent" className="text-sm text-gray-700 dark:text-gray-300">
+                        Has content (learning resources available)
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {/* Right Column - Dependencies */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Prerequisites (must complete before this goal)
+                      </label>
+                      <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 space-y-1">
+                        {allLearningGoals
+                          .filter(g => g.id !== goalFormData.id)
+                          .map(goal => (
+                            <label key={goal.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={(goalFormData.prerequisites || []).includes(goal.id)}
+                                onChange={e => {
+                                  const prereqs = goalFormData.prerequisites || [];
+                                  if (e.target.checked) {
+                                    setGoalFormData({ ...goalFormData, prerequisites: [...prereqs, goal.id] });
+                                  } else {
+                                    setGoalFormData({ ...goalFormData, prerequisites: prereqs.filter(p => p !== goal.id) });
+                                  }
+                                }}
+                                className="w-3.5 h-3.5 rounded border-gray-300"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{goal.title}</span>
+                            </label>
+                          ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected: {(goalFormData.prerequisites || []).length} prerequisite(s)
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Goals that build on this (will have this as prerequisite)
+                      </label>
+                      <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 space-y-1">
+                        {allLearningGoals
+                          .filter(g => g.id !== goalFormData.id)
+                          .map(goal => (
+                            <label key={goal.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={goalDependents.includes(goal.id)}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setGoalDependents([...goalDependents, goal.id]);
+                                  } else {
+                                    setGoalDependents(goalDependents.filter(d => d !== goal.id));
+                                  }
+                                }}
+                                className="w-3.5 h-3.5 rounded border-gray-300"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{goal.title}</span>
+                            </label>
+                          ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected: {goalDependents.length} dependent goal(s)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => {
+                      setIsCreatingGoal(false);
+                      setEditingGoalId(null);
+                      setGoalFormData({});
+                      setGoalDependents([]);
+                    }}
+                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!goalFormData.id || !goalFormData.title) {
+                        alert('ID and Title are required');
+                        return;
+                      }
+                      
+                      const newGoal: SkillNode = {
+                        id: goalFormData.id,
+                        title: goalFormData.title,
+                        description: goalFormData.description || '',
+                        hint: goalFormData.hint || '',
+                        prerequisites: goalFormData.prerequisites || [],
+                        hasContent: goalFormData.hasContent || false,
+                      };
+                      
+                      if (isCreatingGoal) {
+                        // Add new goal
+                        const updatedGoals = [...allLearningGoals, newGoal];
+                        // Update dependents to have this goal as prerequisite
+                        const finalGoals = updatedGoals.map(g => {
+                          if (goalDependents.includes(g.id)) {
+                            return { ...g, prerequisites: [...g.prerequisites, newGoal.id] };
+                          }
+                          return g;
+                        });
+                        setAllLearningGoals(finalGoals);
+                        console.log('[Learning Goals] Created:', newGoal, 'Dependents updated:', goalDependents);
+                      } else {
+                        // Update existing goal
+                        let updatedGoals = allLearningGoals.map(g => 
+                          g.id === editingGoalId ? newGoal : g
+                        );
+                        // Update dependents
+                        updatedGoals = updatedGoals.map(g => {
+                          if (g.id === editingGoalId) return g;
+                          const hadPrereq = g.prerequisites.includes(editingGoalId!);
+                          const shouldHavePrereq = goalDependents.includes(g.id);
+                          
+                          if (shouldHavePrereq && !hadPrereq) {
+                            return { ...g, prerequisites: [...g.prerequisites, editingGoalId!] };
+                          } else if (!shouldHavePrereq && hadPrereq) {
+                            return { ...g, prerequisites: g.prerequisites.filter(p => p !== editingGoalId) };
+                          }
+                          return g;
+                        });
+                        setAllLearningGoals(updatedGoals);
+                        console.log('[Learning Goals] Updated:', newGoal);
+                      }
+                      
+                      setIsCreatingGoal(false);
+                      setEditingGoalId(null);
+                      setGoalFormData({});
+                      setGoalDependents([]);
+                    }}
+                    className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    {isCreatingGoal ? 'Create Goal' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Goals List */}
+            {!isCreatingGoal && !editingGoalId && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Title</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Prerequisites</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Dependents</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Content</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {allLearningGoals.map(goal => {
+                      const dependents = allLearningGoals.filter(g => g.prerequisites.includes(goal.id));
+                      return (
+                        <tr key={goal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="px-4 py-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{goal.title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{goal.id}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {goal.prerequisites.length === 0 ? (
+                              <span className="text-xs text-gray-400">None (starting point)</span>
+                            ) : (
+                              <div className="flex flex-wrap gap-1">
+                                {goal.prerequisites.map(prereqId => {
+                                  const prereq = allLearningGoals.find(g => g.id === prereqId);
+                                  return (
+                                    <span key={prereqId} className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
+                                      {prereq?.title || prereqId}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {dependents.length === 0 ? (
+                              <span className="text-xs text-gray-400">None (end point)</span>
+                            ) : (
+                              <div className="flex flex-wrap gap-1">
+                                {dependents.slice(0, 3).map(dep => (
+                                  <span key={dep.id} className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded">
+                                    {dep.title}
+                                  </span>
+                                ))}
+                                {dependents.length > 3 && (
+                                  <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 rounded">
+                                    +{dependents.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              goal.hasContent 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                            }`}>
+                              {goal.hasContent ? 'Has Content' : 'Placeholder'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => {
+                                setEditingGoalId(goal.id);
+                                setGoalFormData({ ...goal });
+                                // Find goals that have this goal as prerequisite
+                                const deps = allLearningGoals
+                                  .filter(g => g.prerequisites.includes(goal.id))
+                                  .map(g => g.id);
+                                setGoalDependents(deps);
+                              }}
+                              className="px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete "${goal.title}"? This will also remove it from other goals' prerequisites.`)) {
+                                  const updatedGoals = allLearningGoals
+                                    .filter(g => g.id !== goal.id)
+                                    .map(g => ({
+                                      ...g,
+                                      prerequisites: g.prerequisites.filter(p => p !== goal.id)
+                                    }));
+                                  setAllLearningGoals(updatedGoals);
+                                  console.log('[Learning Goals] Deleted:', goal.id);
+                                }
+                              }}
+                              className="px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'assessment' && (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-3xl">📤</span>
+                <span className="text-3xl">📝</span>
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Publish Content to Group
+                Assessment
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Coming Soon
