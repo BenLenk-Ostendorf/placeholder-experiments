@@ -917,7 +917,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 {/* Main content area */}
                 <div className={`grid gap-6 ${showFeedbackPanel ? 'grid-cols-3' : 'grid-cols-1'}`}>
                   {/* WYSIWYG Editor (left/main column) */}
-                  <div className={`${showFeedbackPanel ? 'col-span-2' : ''} bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4`}>
+                  <div 
+                    className={`${showFeedbackPanel ? 'col-span-2' : ''} bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4`}
+                    onClick={(e) => {
+                      // Deselect element when clicking anywhere in editor that's not a step element
+                      if (showFeedbackPanel) {
+                        const clickedElement = (e.target as HTMLElement).closest('[data-element-id]');
+                        if (!clickedElement) {
+                          setSelectedElementForFeedback(null);
+                          setHighlightedElementId(null);
+                        }
+                      }
+                    }}
+                  >
                     <div className="space-y-2 max-h-[700px] overflow-y-auto">
                       {/* Insert button at beginning */}
                       <div className="flex items-center justify-center py-2 group relative">
@@ -1214,10 +1226,21 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             return (
                               <div
                                 key={feedback.id}
-                                className={`p-3 rounded-lg border ${
-                                  feedback.flag === 'technicalError' ? 'border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800' :
-                                  feedback.flag === 'falseInformation' ? 'border-orange-200 bg-orange-50 dark:bg-orange-900/10 dark:border-orange-800' :
-                                  'border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800'
+                                onClick={() => {
+                                  // Scroll to the element
+                                  setHighlightedElementId(feedback.contentId);
+                                  setSelectedElementForFeedback(feedback.contentId);
+                                  setTimeout(() => {
+                                    const element = document.querySelector(`[data-element-id="${feedback.contentId}"]`);
+                                    if (element) {
+                                      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                  }, 100);
+                                }}
+                                className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                                  feedback.flag === 'technicalError' ? 'border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/20' :
+                                  feedback.flag === 'falseInformation' ? 'border-orange-200 bg-orange-50 dark:bg-orange-900/10 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/20' :
+                                  'border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/20'
                                 }`}
                               >
                                 <div className="flex items-start justify-between mb-2">
@@ -1237,13 +1260,19 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                                   <span className="text-xs text-gray-500">{feedback.university}</span>
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={() => updateFeedbackStatus(feedback.id, 'rejected')}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateFeedbackStatus(feedback.id, 'rejected');
+                                      }}
                                       className="px-2 py-1 text-xs font-medium bg-red-500 text-white hover:bg-red-600 rounded"
                                     >
                                       ✗ Reject
                                     </button>
                                     <button
-                                      onClick={() => updateFeedbackStatus(feedback.id, 'solved')}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateFeedbackStatus(feedback.id, 'solved');
+                                      }}
                                       className="px-2 py-1 text-xs font-medium bg-green-500 text-white hover:bg-green-600 rounded"
                                     >
                                       ✓ Solved
