@@ -1,0 +1,174 @@
+{
+  "learningGoals": [
+    {
+      "id": "ai-text-generation",
+      "title": "How AI Produces Text",
+      "description": "Learn the fundamentals of how AI generates human-like text",
+      "hint": "Discover how AI models use tokens and probability distributions to generate text. You'll learn why the same prompt can give different results!",
+      "prerequisites": [],
+      "hasContent": true
+    },
+    {
+      "id": "what-is-ai",
+      "title": "What is AI?",
+      "description": "A beginner-friendly introduction to artificial intelligence",
+      "hint": "Learn the basics of what AI is, how it differs from traditional software, and why it matters today.",
+      "prerequisites": [],
+      "hasContent": false
+    },
+    {
+      "id": "ai-tools-overview",
+      "title": "AI Tools Overview",
+      "description": "Discover the landscape of AI tools available today",
+      "hint": "Get an overview of popular AI tools like ChatGPT, Claude, Gemini, and understand their strengths.",
+      "prerequisites": [],
+      "hasContent": false
+    },
+    {
+      "id": "temperature-randomness",
+      "title": "Temperature & Creativity",
+      "description": "Control how creative or focused AI responses are",
+      "hint": "Learn how the \"temperature\" setting affects AI output - from deterministic and focused to creative and unpredictable.",
+      "prerequisites": ["ai-text-generation"],
+      "hasContent": false
+    },
+    {
+      "id": "ai-hallucinations",
+      "title": "Why AI Hallucinates",
+      "description": "Understand why AI sometimes makes things up",
+      "hint": "Explore why AI models confidently generate false information and what causes these \"hallucinations\".",
+      "prerequisites": ["ai-text-generation"],
+      "hasContent": false
+    },
+    {
+      "id": "context-window",
+      "title": "Context Window Limits",
+      "description": "Understanding AI memory limitations",
+      "hint": "Learn about the context window - how much text an AI can \"remember\" during a conversation and why it matters.",
+      "prerequisites": ["ai-text-generation"],
+      "hasContent": false
+    },
+    {
+      "id": "choosing-ai-tool",
+      "title": "Choosing the Right AI",
+      "description": "Pick the best AI tool for your task",
+      "hint": "Learn how to evaluate and choose between different AI tools based on your specific needs.",
+      "prerequisites": ["ai-tools-overview"],
+      "hasContent": false
+    },
+    {
+      "id": "ai-limitations",
+      "title": "AI Limitations",
+      "description": "Understand what AI cannot do",
+      "hint": "Learn about the fundamental limitations of current AI systems and where they fall short.",
+      "prerequisites": ["what-is-ai"],
+      "hasContent": false
+    },
+    {
+      "id": "prompt-engineering",
+      "title": "Prompt Engineering",
+      "description": "Learn to write effective prompts",
+      "hint": "Master the art of writing prompts that get better, more reliable results from AI models.",
+      "prerequisites": ["temperature-randomness"],
+      "hasContent": false
+    },
+    {
+      "id": "fact-checking",
+      "title": "Fact-Checking AI",
+      "description": "Verify and validate AI-generated content",
+      "hint": "Learn strategies and techniques for verifying the accuracy of AI-generated information.",
+      "prerequisites": ["ai-hallucinations"],
+      "hasContent": false
+    },
+    {
+      "id": "ai-bias",
+      "title": "AI Bias & Fairness",
+      "description": "Recognize and mitigate AI biases",
+      "hint": "Understand how biases in training data affect AI outputs and learn to identify potentially biased responses.",
+      "prerequisites": ["ai-hallucinations"],
+      "hasContent": false
+    },
+    {
+      "id": "long-conversations",
+      "title": "Managing Long Chats",
+      "description": "Keep AI on track in long conversations",
+      "hint": "Learn techniques for maintaining context and quality in extended AI conversations.",
+      "prerequisites": ["context-window"],
+      "hasContent": false
+    },
+    {
+      "id": "advanced-prompting",
+      "title": "Advanced Prompting",
+      "description": "Chain-of-thought and few-shot techniques",
+      "hint": "Learn advanced prompting strategies like chain-of-thought reasoning and few-shot learning.",
+      "prerequisites": ["prompt-engineering"],
+      "hasContent": false
+    },
+    {
+      "id": "ethical-ai-use",
+      "title": "Ethical AI Use",
+      "description": "Responsible AI practices",
+      "hint": "Explore ethical considerations when using AI - from attribution to avoiding harm.",
+      "prerequisites": ["fact-checking", "ai-bias"],
+      "hasContent": false
+    },
+    {
+      "id": "ai-for-coding",
+      "title": "AI for Coding",
+      "description": "Use AI to help write and debug code",
+      "hint": "Learn how to effectively use AI assistants for programming tasks - from code generation to debugging.",
+      "prerequisites": ["advanced-prompting"],
+      "hasContent": false
+    },
+    {
+      "id": "ai-for-writing",
+      "title": "AI for Writing",
+      "description": "Enhance your writing with AI assistance",
+      "hint": "Discover how to use AI as a writing partner - for brainstorming, editing, and improving your text.",
+      "prerequisites": ["advanced-prompting"],
+      "hasContent": false
+    }
+  ],
+  "certificates": [
+    {
+      "id": "ai-fundamentals",
+      "title": "AI Fundamentals",
+      "description": "Master the basics of how AI works and its limitations",
+      "icon": "🎓",
+      "requiredGoals": ["ai-text-generation", "ai-hallucinations", "fact-checking"],
+      "color": "amber"
+    },
+    {
+      "id": "prompt-master",
+      "title": "Prompt Master",
+      "description": "Become an expert at crafting effective AI prompts",
+      "icon": "✨",
+      "requiredGoals": ["ai-text-generation", "temperature-randomness", "prompt-engineering", "advanced-prompting"],
+      "color": "purple"
+    },
+    {
+      "id": "responsible-ai",
+      "title": "Responsible AI User",
+      "description": "Learn to use AI ethically and responsibly",
+      "icon": "🛡️",
+      "requiredGoals": ["what-is-ai", "ai-limitations", "ai-hallucinations", "ai-bias", "ethical-ai-use"],
+      "color": "emerald"
+    },
+    {
+      "id": "ai-developer",
+      "title": "AI-Assisted Developer",
+      "description": "Use AI effectively for coding and development",
+      "icon": "💻",
+      "requiredGoals": ["ai-text-generation", "prompt-engineering", "advanced-prompting", "ai-for-coding"],
+      "color": "blue"
+    },
+    {
+      "id": "ai-writer",
+      "title": "AI-Powered Writer",
+      "description": "Enhance your writing with AI assistance",
+      "icon": "✍️",
+      "requiredGoals": ["ai-text-generation", "temperature-randomness", "prompt-engineering", "ai-for-writing"],
+      "color": "rose"
+    }
+  ]
+}

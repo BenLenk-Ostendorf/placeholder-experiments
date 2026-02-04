@@ -1,209 +1,19 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { 
+  getLearningGoals, 
+  getCertificates,
+  type SkillNode,
+  type Certificate 
+} from '@/services/learningGoalsService';
 
-// Skill tree node data structure
-export interface SkillNode {
-  id: string;
-  title: string;
-  description: string;
-  hint: string;
-  prerequisites: string[]; // IDs of nodes that must be completed first
-  hasContent: boolean; // Whether this node has actual content or is a placeholder
-}
+// Export types for use in other components
+export type { SkillNode, Certificate };
 
-// Certificate definition
-export interface Certificate {
-  id: string;
-  title: string;
-  description: string;
-  icon: string; // emoji
-  requiredGoals: string[]; // IDs of learning goals needed for this certificate
-  color: string; // Tailwind color class
-}
-
-// Define available certificates
-export const certificates: Certificate[] = [
-  {
-    id: 'ai-fundamentals',
-    title: 'AI Fundamentals',
-    description: 'Master the basics of how AI works and its limitations',
-    icon: '🎓',
-    requiredGoals: ['ai-text-generation', 'ai-hallucinations', 'fact-checking'],
-    color: 'amber',
-  },
-  {
-    id: 'prompt-master',
-    title: 'Prompt Master',
-    description: 'Become an expert at crafting effective AI prompts',
-    icon: '✨',
-    requiredGoals: ['ai-text-generation', 'temperature-randomness', 'prompt-engineering', 'advanced-prompting'],
-    color: 'purple',
-  },
-  {
-    id: 'responsible-ai',
-    title: 'Responsible AI User',
-    description: 'Learn to use AI ethically and responsibly',
-    icon: '🛡️',
-    requiredGoals: ['what-is-ai', 'ai-limitations', 'ai-hallucinations', 'ai-bias', 'ethical-ai-use'],
-    color: 'emerald',
-  },
-  {
-    id: 'ai-developer',
-    title: 'AI-Assisted Developer',
-    description: 'Use AI effectively for coding and development',
-    icon: '💻',
-    requiredGoals: ['ai-text-generation', 'prompt-engineering', 'advanced-prompting', 'ai-for-coding'],
-    color: 'blue',
-  },
-  {
-    id: 'ai-writer',
-    title: 'AI-Powered Writer',
-    description: 'Enhance your writing with AI assistance',
-    icon: '✍️',
-    requiredGoals: ['ai-text-generation', 'temperature-randomness', 'prompt-engineering', 'ai-for-writing'],
-    color: 'rose',
-  },
-];
-
-// Define all learning goals in the skill tree
-export const skillTreeNodes: SkillNode[] = [
-  // Level 0 - Foundation (no prerequisites - starting points)
-  {
-    id: 'ai-text-generation',
-    title: 'How AI Produces Text',
-    description: 'Learn the fundamentals of how AI generates human-like text',
-    hint: 'Discover how AI models use tokens and probability distributions to generate text. You\'ll learn why the same prompt can give different results!',
-    prerequisites: [],
-    hasContent: true,
-  },
-  {
-    id: 'what-is-ai',
-    title: 'What is AI?',
-    description: 'A beginner-friendly introduction to artificial intelligence',
-    hint: 'Learn the basics of what AI is, how it differs from traditional software, and why it matters today.',
-    prerequisites: [],
-    hasContent: false,
-  },
-  {
-    id: 'ai-tools-overview',
-    title: 'AI Tools Overview',
-    description: 'Discover the landscape of AI tools available today',
-    hint: 'Get an overview of popular AI tools like ChatGPT, Claude, Gemini, and understand their strengths.',
-    prerequisites: [],
-    hasContent: false,
-  },
-  
-  // Level 1 - Core Concepts
-  {
-    id: 'temperature-randomness',
-    title: 'Temperature & Creativity',
-    description: 'Control how creative or focused AI responses are',
-    hint: 'Learn how the "temperature" setting affects AI output - from deterministic and focused to creative and unpredictable.',
-    prerequisites: ['ai-text-generation'],
-    hasContent: false,
-  },
-  {
-    id: 'ai-hallucinations',
-    title: 'Why AI Hallucinates',
-    description: 'Understand why AI sometimes makes things up',
-    hint: 'Explore why AI models confidently generate false information and what causes these "hallucinations".',
-    prerequisites: ['ai-text-generation'],
-    hasContent: false,
-  },
-  {
-    id: 'context-window',
-    title: 'Context Window Limits',
-    description: 'Understanding AI memory limitations',
-    hint: 'Learn about the context window - how much text an AI can "remember" during a conversation and why it matters.',
-    prerequisites: ['ai-text-generation'],
-    hasContent: false,
-  },
-  {
-    id: 'choosing-ai-tool',
-    title: 'Choosing the Right AI',
-    description: 'Pick the best AI tool for your task',
-    hint: 'Learn how to evaluate and choose between different AI tools based on your specific needs.',
-    prerequisites: ['ai-tools-overview'],
-    hasContent: false,
-  },
-  {
-    id: 'ai-limitations',
-    title: 'AI Limitations',
-    description: 'Understand what AI cannot do',
-    hint: 'Learn about the fundamental limitations of current AI systems and where they fall short.',
-    prerequisites: ['what-is-ai'],
-    hasContent: false,
-  },
-  
-  // Level 2 - Applied Knowledge
-  {
-    id: 'prompt-engineering',
-    title: 'Prompt Engineering',
-    description: 'Learn to write effective prompts',
-    hint: 'Master the art of writing prompts that get better, more reliable results from AI models.',
-    prerequisites: ['temperature-randomness'],
-    hasContent: false,
-  },
-  {
-    id: 'fact-checking',
-    title: 'Fact-Checking AI',
-    description: 'Verify and validate AI-generated content',
-    hint: 'Learn strategies and techniques for verifying the accuracy of AI-generated information.',
-    prerequisites: ['ai-hallucinations'],
-    hasContent: false,
-  },
-  {
-    id: 'ai-bias',
-    title: 'AI Bias & Fairness',
-    description: 'Recognize and mitigate AI biases',
-    hint: 'Understand how biases in training data affect AI outputs and learn to identify potentially biased responses.',
-    prerequisites: ['ai-hallucinations'],
-    hasContent: false,
-  },
-  {
-    id: 'long-conversations',
-    title: 'Managing Long Chats',
-    description: 'Keep AI on track in long conversations',
-    hint: 'Learn techniques for maintaining context and quality in extended AI conversations.',
-    prerequisites: ['context-window'],
-    hasContent: false,
-  },
-  
-  // Level 3 - Advanced Topics
-  {
-    id: 'advanced-prompting',
-    title: 'Advanced Prompting',
-    description: 'Chain-of-thought and few-shot techniques',
-    hint: 'Learn advanced prompting strategies like chain-of-thought reasoning and few-shot learning.',
-    prerequisites: ['prompt-engineering'],
-    hasContent: false,
-  },
-  {
-    id: 'ethical-ai-use',
-    title: 'Ethical AI Use',
-    description: 'Responsible AI practices',
-    hint: 'Explore ethical considerations when using AI - from attribution to avoiding harm.',
-    prerequisites: ['fact-checking', 'ai-bias'],
-    hasContent: false,
-  },
-  {
-    id: 'ai-for-coding',
-    title: 'AI for Coding',
-    description: 'Use AI to help write and debug code',
-    hint: 'Learn how to effectively use AI assistants for programming tasks - from code generation to debugging.',
-    prerequisites: ['advanced-prompting'],
-    hasContent: false,
-  },
-  {
-    id: 'ai-for-writing',
-    title: 'AI for Writing',
-    description: 'Enhance your writing with AI assistance',
-    hint: 'Discover how to use AI as a writing partner - for brainstorming, editing, and improving your text.',
-    prerequisites: ['advanced-prompting'],
-    hasContent: false,
-  },
-];
+// Load data from service
+export const skillTreeNodes: SkillNode[] = getLearningGoals();
+export const certificates: Certificate[] = getCertificates();
 
 interface SkillTreeProps {
   completedNodes: string[];
@@ -628,10 +438,10 @@ export default function SkillTree({
               </div>
             )}
 
-            {/* Learning Format Options */}
+            {/* Learning Nugget Options */}
             {(accessibleNodes.includes(selectedNode.id) || debugMode) && (
               <div className="mb-4">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Choose your learning format:</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Choose your learning nugget:</p>
                 <div className="space-y-2">
                   {/* Story-driven Course */}
                   <button
@@ -707,46 +517,73 @@ export default function SkillTree({
                       </p>
                     </div>
                   </div>
-
-                  {/* Challenge for Credit */}
-                  <button
-                    onClick={() => {
-                      if (selectedNode.hasContent) {
-                        onChallengeGoal(selectedNode.id);
-                        setSelectedNode(null);
-                      }
-                    }}
-                    disabled={!selectedNode.hasContent}
-                    className={`w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3 ${
-                      selectedNode.hasContent
-                        ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 cursor-pointer'
-                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      selectedNode.hasContent ? 'bg-amber-500' : 'bg-gray-400'
-                    }`}>
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${selectedNode.hasContent ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
-                          Challenge for Credit
-                        </span>
-                        {selectedNode.hasContent && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded">
-                            Test Out
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Already know this? Take the quiz to earn credit directly
-                      </p>
-                    </div>
-                  </button>
                 </div>
+              </div>
+            )}
+
+            {/* Challenge for Credit - Separate Special Section */}
+            {(accessibleNodes.includes(selectedNode.id) || debugMode) && (
+              <div className="mb-4">
+                {/* Divider with text */}
+                <div className="relative flex items-center my-4">
+                  <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                  <span className="flex-shrink mx-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">or</span>
+                  <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Skip ahead if you already know this:
+                </p>
+                
+                <button
+                  onClick={() => {
+                    if (selectedNode.hasContent) {
+                      onChallengeGoal(selectedNode.id);
+                      setSelectedNode(null);
+                    }
+                  }}
+                  disabled={!selectedNode.hasContent}
+                  className={`w-full text-left p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
+                    selectedNode.hasContent
+                      ? 'border-amber-400 dark:border-amber-500 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/20 hover:from-amber-100 hover:to-yellow-100 dark:hover:from-amber-900/40 dark:hover:to-yellow-900/30 cursor-pointer shadow-sm hover:shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
+                    selectedNode.hasContent ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-base font-semibold ${
+                        selectedNode.hasContent ? 'text-gray-900 dark:text-white' : 'text-gray-500'
+                      }`}>
+                        Challenge for Credit
+                      </span>
+                      {selectedNode.hasContent && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 rounded-full uppercase tracking-wide">
+                          Test Out
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs ${
+                      selectedNode.hasContent ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      Already know this? Take the quiz to earn credit directly
+                    </p>
+                  </div>
+                  {selectedNode.hasContent && (
+                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </button>
               </div>
             )}
 
