@@ -331,6 +331,11 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [filterFlag, setFilterFlag] = useState<string | null>(null);
   const [filterObjective, setFilterObjective] = useState<string | null>(null);
   const [filterUniversity, setFilterUniversity] = useState<string | null>(null);
+  
+  // Ratings filter and sort state
+  const [ratingsFilterObjective, setRatingsFilterObjective] = useState<string | null>(null);
+  const [ratingsFilterUniversity, setRatingsFilterUniversity] = useState<string | null>(null);
+  const [ratingsSortBy, setRatingsSortBy] = useState<'rating-asc' | 'rating-desc' | 'responses-desc' | 'objective'>('rating-asc');
 
   // Nuggets tab state - new workflow
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
@@ -430,7 +435,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   
   // Calculate average ratings per nugget
   const calculateNuggetRatings = () => {
-    const nuggetGroups: Record<string, { ratings: number[]; objective: string; nugget: string }> = {};
+    const nuggetGroups: Record<string, { ratings: number[]; objective: string; nugget: string; universities: Set<string> }> = {};
     
     feedbackData.forEach(entry => {
       if (entry.rating) {
@@ -439,14 +444,16 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           nuggetGroups[key] = {
             ratings: [],
             objective: entry.learningObjective,
-            nugget: entry.nugget
+            nugget: entry.nugget,
+            universities: new Set()
           };
         }
         nuggetGroups[key].ratings.push(entry.rating);
+        nuggetGroups[key].universities.add(entry.university);
       }
     });
     
-    return Object.entries(nuggetGroups).map(([key, data]) => {
+    let results = Object.entries(nuggetGroups).map(([key, data]) => {
       const average = data.ratings.reduce((sum, r) => sum + r, 0) / data.ratings.length;
       return {
         key,
@@ -454,10 +461,41 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
         nugget: data.nugget,
         averageRating: average,
         count: data.ratings.length,
+        universities: Array.from(data.universities).sort().join(', '),
         emoji: getRatingEmoji(average)
       };
-    }).sort((a, b) => a.averageRating - b.averageRating); // Sort by rating (lowest first)
+    });
+    
+    // Apply filters
+    if (ratingsFilterObjective) {
+      results = results.filter(r => r.objective === ratingsFilterObjective);
+    }
+    if (ratingsFilterUniversity) {
+      results = results.filter(r => r.universities.includes(ratingsFilterUniversity));
+    }
+    
+    // Apply sorting
+    results.sort((a, b) => {
+      switch (ratingsSortBy) {
+        case 'rating-asc':
+          return a.averageRating - b.averageRating;
+        case 'rating-desc':
+          return b.averageRating - a.averageRating;
+        case 'responses-desc':
+          return b.count - a.count;
+        case 'objective':
+          return a.objective.localeCompare(b.objective);
+        default:
+          return a.averageRating - b.averageRating;
+      }
+    });
+    
+    return results;
   };
+  
+  // Get unique values for ratings filters
+  const ratingsUniqueObjectives = [...new Set(feedbackData.filter(f => f.rating).map(f => f.learningObjective))];
+  const ratingsUniqueUniversities = [...new Set(feedbackData.filter(f => f.rating).map(f => f.university))];
   
   // Navigate from Feedback tab to Nuggets tab with specific element highlighted
   const navigateToFeedbackElement = (feedback: FeedbackEntry) => {
@@ -947,6 +985,60 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                   </div>
                 </div>
 
+                {/* Filters and Sort */}
+                <div className="flex gap-4 flex-wrap items-end">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Filter by Learning Objective
+                    </label>
+                    <select
+                      value={ratingsFilterObjective || ''}
+                      onChange={e => setRatingsFilterObjective(e.target.value || null)}
+                      className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">All Objectives</option>
+                      {ratingsUniqueObjectives.map(obj => (
+                        <option key={obj} value={obj}>{obj}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Filter by University
+                    </label>
+                    <select
+                      value={ratingsFilterUniversity || ''}
+                      onChange={e => setRatingsFilterUniversity(e.target.value || null)}
+                      className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">All Universities</option>
+                      {ratingsUniqueUniversities.map(uni => (
+                        <option key={uni} value={uni}>{uni}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Sort By
+                    </label>
+                    <select
+                      value={ratingsSortBy}
+                      onChange={e => setRatingsSortBy(e.target.value as any)}
+                      className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="rating-asc">Rating (Low to High)</option>
+                      <option value="rating-desc">Rating (High to Low)</option>
+                      <option value="responses-desc">Most Responses</option>
+                      <option value="objective">Learning Objective</option>
+                    </select>
+                  </div>
+                  <div className="flex items-end">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {calculateNuggetRatings().length} nugget(s)
+                    </span>
+                  </div>
+                </div>
+
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                   <table className="w-full">
                     <thead>
@@ -957,14 +1049,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                           Nugget Type
                         </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          University
+                        </th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                           Average Rating
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                           Responses
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          Sentiment
                         </th>
                       </tr>
                     </thead>
@@ -992,35 +1084,17 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                               {rating.nugget}
                             </td>
+                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                              {rating.universities}
+                            </td>
                             <td className="px-4 py-3 text-center">
-                              <div className="flex flex-col items-center gap-1">
-                                <span className={`text-2xl font-bold ${ratingColor}`}>
-                                  {rating.averageRating.toFixed(2)}
-                                </span>
-                                <div className="flex gap-0.5">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <span
-                                      key={star}
-                                      className={`text-sm ${
-                                        star <= Math.round(rating.averageRating)
-                                          ? 'text-yellow-400'
-                                          : 'text-gray-300 dark:text-gray-600'
-                                      }`}
-                                    >
-                                      ⭐
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
+                              <span className={`text-xl font-bold ${ratingColor}`}>
+                                {rating.averageRating.toFixed(2)}
+                              </span>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                                 {rating.count} {rating.count === 1 ? 'response' : 'responses'}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="text-3xl" title={`Average: ${rating.averageRating.toFixed(2)}`}>
-                                {rating.emoji}
                               </span>
                             </td>
                           </tr>

@@ -207,7 +207,7 @@ export default function SkillTree({
           onClick={() => onSelectCertificate(null)}
           className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
         >
-          Change Goal
+          Change Learning Path
         </button>
       </div>
 
@@ -614,15 +614,32 @@ export default function SkillTree({
 
       {/* Certificate Selection Modal */}
       {showCertificateSelection && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Choose Your Learning Goal
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Select a certificate to work towards, or explore freely at your own pace
-              </p>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={onCloseCertificateSelection}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-6">
+              <div className="text-center flex-1">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  Choose Your Learning Path
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Select a certificate to work towards, or explore freely at your own pace
+                </p>
+              </div>
+              <button
+                onClick={onCloseCertificateSelection}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Close"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             {/* Certificate Options */}
