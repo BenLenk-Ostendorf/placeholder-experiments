@@ -2,12 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AIDialogue from '@/components/AIDialogue';
+import StorySection from '@/components/StorySection';
 import TrustSurvey from '@/components/TrustSurvey';
 import TrustAnalysis from '@/components/TrustAnalysis';
 import LearningResources from '@/components/LearningResources';
 import TokenSimulator from '@/components/TokenSimulator';
-import StorySection from '@/components/StorySection';
 import ExplanationSection from '@/components/ExplanationSection';
 import TokenVisual from '@/components/TokenVisual';
 import SpinnerVisual from '@/components/SpinnerVisual';
@@ -249,7 +248,7 @@ function ContentPageContent() {
               <div data-step="1">
                 <Editable elementId="step-1" elementLabel="Step 1: Spezi's complaint" editingMode={editingMode} isHighlighted={highlightedElement === 'step-1'}>
                   <Flaggable elementId="step-1" elementLabel="Step 1: Spezi's complaint" testingMode={testingMode && !editingMode} feedback={feedbackData['step-1']} onFeedbackChange={handleFeedbackChange}>
-                    <AIDialogue
+                    <StorySection
                       imageSide="left"
                       faceId="spezi_confused"
                       text="I asked ChatGPT the same question twice and got completely different answers. Is it broken or just making things up?"
@@ -265,7 +264,7 @@ function ContentPageContent() {
               <div data-step="2">
                 <Editable elementId="step-2" elementLabel="Step 2: Puck's response" editingMode={editingMode} isHighlighted={highlightedElement === 'step-2'}>
                   <Flaggable elementId="step-2" elementLabel="Step 2: Puck's response" testingMode={testingMode && !editingMode} feedback={feedbackData['step-2']} onFeedbackChange={handleFeedbackChange}>
-                    <AIDialogue
+                    <StorySection
                       imageSide="right"
                       faceId="puck_explaining"
                       text="Neither! It's actually working exactly as designed. Let's explore how AI generates text - it might surprise you."
