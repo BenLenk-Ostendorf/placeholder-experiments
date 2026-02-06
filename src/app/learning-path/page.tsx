@@ -88,6 +88,7 @@ export default function LearningPathPage() {
           onStartGoal={handleStartGoal}
           onChallengeGoal={handleChallengeGoal}
           debugMode={false}
+          testingMode={testingMode}
           onToggleNodeComplete={handleToggleNodeComplete}
           selectedCertificate={selectedCertificate}
           onSelectCertificate={handleSelectCertificate}

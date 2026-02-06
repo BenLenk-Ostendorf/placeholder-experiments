@@ -7,6 +7,7 @@ import {
   type SkillNode,
   type Certificate 
 } from '@/services/learningGoalsService';
+import FinalQuiz from '@/components/FinalQuiz';
 
 // Export types for use in other components
 export type { SkillNode, Certificate };
@@ -20,6 +21,7 @@ interface SkillTreeProps {
   onStartGoal: (nodeId: string) => void;
   onChallengeGoal: (nodeId: string) => void;
   debugMode: boolean;
+  testingMode?: boolean;
   onToggleNodeComplete: (nodeId: string) => void;
   selectedCertificate: string | null;
   onSelectCertificate: (certId: string | null) => void;
@@ -32,6 +34,7 @@ export default function SkillTree({
   onStartGoal, 
   onChallengeGoal,
   debugMode, 
+  testingMode = false,
   onToggleNodeComplete,
   selectedCertificate,
   onSelectCertificate,
@@ -39,6 +42,7 @@ export default function SkillTree({
   onCloseCertificateSelection,
 }: SkillTreeProps) {
   const [selectedNode, setSelectedNode] = useState<SkillNode | null>(null);
+  const [challengeNode, setChallengeNode] = useState<SkillNode | null>(null);
 
   // Calculate which nodes are accessible (all prerequisites completed)
   const accessibleNodes = useMemo(() => {
@@ -163,9 +167,14 @@ export default function SkillTree({
     return positions;
   }, []);
 
+  // Find dependent nodes (nodes that require this node as a prerequisite)
+  const getDependentNodes = (nodeId: string) => {
+    return skillTreeNodes.filter(n => n.prerequisites.includes(nodeId));
+  };
+
   const handleNodeClick = (node: SkillNode) => {
     const isAccessible = accessibleNodes.includes(node.id);
-    if (isAccessible || debugMode) {
+    if (isAccessible || debugMode || testingMode) {
       setSelectedNode(node);
     }
   };
@@ -278,7 +287,7 @@ export default function SkillTree({
 
             const isCompleted = completedNodes.includes(node.id);
             const isAccessible = accessibleNodes.includes(node.id);
-            const isLocked = !isAccessible && !debugMode;
+            const isLocked = !isAccessible && !debugMode && !testingMode;
             const isCertEndGoal = certificateEndGoals.has(node.id);
 
             return (
@@ -438,8 +447,47 @@ export default function SkillTree({
               </div>
             )}
 
+            {/* Dependent Goals - shown for completed nodes */}
+            {completedNodes.includes(selectedNode.id) && getDependentNodes(selectedNode.id).length > 0 && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3 mb-4">
+                <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Unlocked goals:</p>
+                <div className="space-y-1">
+                  {getDependentNodes(selectedNode.id).map(dep => {
+                    const depAccessible = accessibleNodes.includes(dep.id);
+                    const depCompleted = completedNodes.includes(dep.id);
+                    return (
+                      <button
+                        key={dep.id}
+                        onClick={() => {
+                          setSelectedNode(dep);
+                        }}
+                        className="flex items-center gap-2 text-sm w-full text-left hover:bg-green-100 dark:hover:bg-green-900/30 rounded px-2 py-1 transition-colors"
+                      >
+                        {depCompleted ? (
+                          <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : depAccessible ? (
+                          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        )}
+                        <span className={depCompleted ? 'text-green-600 dark:text-green-400' : depAccessible ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-500 dark:text-gray-400'}>
+                          {dep.title}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Learning Nugget Options */}
-            {(accessibleNodes.includes(selectedNode.id) || debugMode) && (
+            {(accessibleNodes.includes(selectedNode.id) || debugMode || testingMode) && !completedNodes.includes(selectedNode.id) && (
               <div className="mb-4">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Choose your learning nugget:</p>
                 <div className="space-y-2">
@@ -522,7 +570,7 @@ export default function SkillTree({
             )}
 
             {/* Challenge for Credit - Separate Special Section */}
-            {(accessibleNodes.includes(selectedNode.id) || debugMode) && (
+            {(accessibleNodes.includes(selectedNode.id) || debugMode || testingMode) && !completedNodes.includes(selectedNode.id) && (
               <div className="mb-4">
                 {/* Divider with text */}
                 <div className="relative flex items-center my-4">
@@ -541,7 +589,7 @@ export default function SkillTree({
                 <button
                   onClick={() => {
                     if (selectedNode.hasContent) {
-                      onChallengeGoal(selectedNode.id);
+                      setChallengeNode(selectedNode);
                       setSelectedNode(null);
                     }
                   }}
@@ -595,9 +643,14 @@ export default function SkillTree({
                 Close
               </button>
               
-              {debugMode && (
+              {(debugMode || testingMode) && (
                 <button
-                  onClick={handleDebugToggle}
+                  onClick={() => {
+                    if (selectedNode) {
+                      onToggleNodeComplete(selectedNode.id);
+                      setSelectedNode(null);
+                    }
+                  }}
                   className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     completedNodes.includes(selectedNode.id)
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -707,6 +760,55 @@ export default function SkillTree({
                 </p>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inline Challenge Quiz Modal */}
+      {challengeNode && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setChallengeNode(null)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 rounded-full uppercase tracking-wide">
+                    Challenge for Credit
+                  </span>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {challengeNode.title}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Pass the quiz to earn credit without completing the course
+                </p>
+              </div>
+              <button
+                onClick={() => setChallengeNode(null)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <FinalQuiz
+              onComplete={(score, total) => {
+                if (score / total >= 0.8) {
+                  onToggleNodeComplete(challengeNode.id);
+                }
+                setTimeout(() => {
+                  setChallengeNode(null);
+                }, 2000);
+              }}
+              challengeMode={true}
+            />
           </div>
         </div>
       )}

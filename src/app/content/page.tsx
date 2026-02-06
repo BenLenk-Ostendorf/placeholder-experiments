@@ -648,8 +648,9 @@ function ContentPageContent() {
 export default function ContentPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="w-10 h-10 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading learning content...</p>
       </div>
     }>
       <ContentPageContent />
