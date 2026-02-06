@@ -54,6 +54,11 @@ function ContentPageContent() {
     const mode = searchParams.get('mode');
     const step = searchParams.get('step');
     const highlight = searchParams.get('highlight');
+    const testing = searchParams.get('testing');
+
+    if (testing === 'true') {
+      setTestingMode(true);
+    }
 
     if (goalId) {
       const goal = skillNodeToGoal[goalId];
@@ -107,7 +112,13 @@ function ContentPageContent() {
   };
 
   const handleBackToLearningPath = () => {
-    router.push('/learning-journey');
+    router.push('/learning-path');
+  };
+
+  const handleSkipToEnd = () => {
+    setLearningStep(10);
+    setQuizScore(3);
+    setUserRating(3);
   };
 
   const handleStoryNext = () => {
@@ -197,6 +208,18 @@ function ContentPageContent() {
         </div>
         
         <div className="flex items-center gap-2">
+          {testingMode && learningStep < 10 && (
+            <button
+              onClick={handleSkipToEnd}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+              title="Skip to completion (Testing Mode)"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+              Skip to End
+            </button>
+          )}
           <button
             onClick={() => setTestingMode(!testingMode)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
@@ -243,15 +266,15 @@ function ContentPageContent() {
               </div>
             )}
 
-            {/* Step 1: Opening Dialogue */}
+            {/* Step 1: Story Introduction Part 1 */}
             {selectedGoal && learningStep >= 1 && (
               <div data-step="1">
                 <Editable elementId="step-1" elementLabel="Step 1: Spezi's complaint" editingMode={editingMode} isHighlighted={highlightedElement === 'step-1'}>
                   <Flaggable elementId="step-1" elementLabel="Step 1: Spezi's complaint" testingMode={testingMode && !editingMode} feedback={feedbackData['step-1']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
                       imageSide="left"
-                      faceId="spezi_confused"
-                      text="I asked ChatGPT the same question twice and got completely different answers. Is it broken or just making things up?"
+                      faceId="spezi_frustrated"
+                      text="ChatGPT just insulted my student! I asked it to write a polite rejection email for a research position application, and the thing writes to him that he is 'academically unsuitable'! Can you believe that?"
                       onClick={!editingMode && learningStep === 1 ? handleStoryNext : undefined}
                     />
                   </Flaggable>
@@ -259,15 +282,15 @@ function ContentPageContent() {
               </div>
             )}
 
-            {/* Step 2: Puck's Response */}
+            {/* Step 2: Story Introduction Part 2 */}
             {selectedGoal && learningStep >= 2 && (
               <div data-step="2">
                 <Editable elementId="step-2" elementLabel="Step 2: Puck's response" editingMode={editingMode} isHighlighted={highlightedElement === 'step-2'}>
                   <Flaggable elementId="step-2" elementLabel="Step 2: Puck's response" testingMode={testingMode && !editingMode} feedback={feedbackData['step-2']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
                       imageSide="right"
-                      faceId="puck_explaining"
-                      text="Neither! It's actually working exactly as designed. Let's explore how AI generates text - it might surprise you."
+                      faceId="puck_tea"
+                      text="(sips his Yorkshire Tea) Welllll... and you're surprised?"
                       onClick={!editingMode && learningStep === 2 ? handleStoryNext : undefined}
                     />
                   </Flaggable>
@@ -276,25 +299,29 @@ function ContentPageContent() {
             )}
 
             {/* Step 3: Trust Survey */}
-            {selectedGoal && learningStep >= 3 && (editingMode || learningStep < 4) && (
+            {selectedGoal && learningStep >= 3 && (
               <div data-step="3">
-                <Editable elementId="step-3" elementLabel="Step 3: Trust Survey" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3'}>
-                  <Flaggable elementId="step-3" elementLabel="Step 3: Trust Survey" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3']} onFeedbackChange={handleFeedbackChange}>
-                    <TrustSurvey onSubmit={handleSurveySubmit} />
+                <Editable elementId="step-3" elementLabel="Step 3: Spezi on consistency" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3'}>
+                  <Flaggable elementId="step-3" elementLabel="Step 3: Spezi on consistency" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3']} onFeedbackChange={handleFeedbackChange}>
+                    <StorySection
+                      imageSide="left"
+                      faceId="spezi_frustrated"
+                      text="Same prompt as last week! It was perfect then!"
+                      onClick={!editingMode && learningStep === 3 ? handleStoryNext : undefined}
+                    />
                   </Flaggable>
                 </Editable>
               </div>
             )}
 
-            {/* Step 3.1: Puck acknowledges survey */}
-            {selectedGoal && learningStep >= 3.1 && userRating !== null && (
+            {selectedGoal && learningStep >= 3.1 && (
               <div data-step="3.1">
-                <Editable elementId="step-3.1" elementLabel="Step 3.1: Puck acknowledges survey" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3.1'}>
-                  <Flaggable elementId="step-3.1" elementLabel="Step 3.1: Puck acknowledges survey" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3.1']} onFeedbackChange={handleFeedbackChange}>
+                <Editable elementId="step-3.1" elementLabel="Step 3.1: Puck asks about consistency" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3.1'}>
+                  <Flaggable elementId="step-3.1" elementLabel="Step 3.1: Puck asks about consistency" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3.1']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
                       imageSide="right"
-                      faceId="puck_explaining"
-                      text="Interesting choice! Let's see what others think..."
+                      faceId="puck_asking"
+                      text="Tell me \u2013 how often do you think an LLM produces the same answer for the same prompt?"
                       onClick={!editingMode && learningStep === 3.1 ? handleStoryNext : undefined}
                     />
                   </Flaggable>
@@ -302,15 +329,122 @@ function ContentPageContent() {
               </div>
             )}
 
-            {/* Step 3.2: Trust Analysis */}
-            {selectedGoal && learningStep >= 3.2 && userRating !== null && (
+            {selectedGoal && learningStep >= 3.2 && (editingMode || learningStep < 4) && (
               <div data-step="3.2">
-                <Editable elementId="step-3.2" elementLabel="Step 3.2: Trust Analysis" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3.2'}>
-                  <Flaggable elementId="step-3.2" elementLabel="Step 3.2: Trust Analysis" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3.2']} onFeedbackChange={handleFeedbackChange}>
-                    <TrustAnalysis userRating={userRating} />
+                <Editable elementId="step-3.2" elementLabel="Step 3.2: Trust Survey" editingMode={editingMode} isHighlighted={highlightedElement === 'step-3.2'}>
+                  <Flaggable elementId="step-3.2" elementLabel="Step 3.2: Trust Survey" testingMode={testingMode && !editingMode} feedback={feedbackData['step-3.2']} onFeedbackChange={handleFeedbackChange}>
+                    <TrustSurvey onSubmit={handleSurveySubmit} />
                   </Flaggable>
                 </Editable>
-                {!editingMode && learningStep === 3.2 && (
+              </div>
+            )}
+
+            {/* Show Trust Analysis after survey submission */}
+            {selectedGoal && learningStep >= 4 && (editingMode || userRating !== null) && (
+              <div data-step="4-analysis">
+                <Editable elementId="step-4-analysis" elementLabel="Trust Analysis Results" editingMode={editingMode} isHighlighted={highlightedElement === 'step-4-analysis'}>
+                  <Flaggable elementId="step-4-analysis" elementLabel="Trust Analysis Results" testingMode={testingMode && !editingMode} feedback={feedbackData['step-4-analysis']} onFeedbackChange={handleFeedbackChange}>
+                    <TrustAnalysis userRating={userRating || 3} />
+                  </Flaggable>
+                </Editable>
+              </div>
+            )}
+
+            {/* Step 4: Reflection on insights - adaptive based on user rating */}
+            {selectedGoal && learningStep >= 4 && (editingMode || userRating !== null) && (
+              <div data-step="4">
+                <Editable elementId="step-4" elementLabel="Step 4: Spezi's reaction" editingMode={editingMode} isHighlighted={highlightedElement === 'step-4'}>
+                  <Flaggable elementId="step-4" elementLabel="Step 4: Spezi's reaction" testingMode={testingMode && !editingMode} feedback={feedbackData['step-4']} onFeedbackChange={handleFeedbackChange}>
+                    <StorySection
+                      imageSide="left"
+                      faceId="spezi_confused"
+                      text={
+                        userRating !== null && userRating >= 4
+                          ? "But I thought they were consistent! The same prompt should give the same answer, right?"
+                          : userRating === 3 || userRating === null
+                          ? "I'm not sure... sometimes it seems consistent, sometimes not?"
+                          : "Yeah, I've noticed they're not very consistent at all."
+                      }
+                      onClick={!editingMode && learningStep === 4 ? handleStoryNext : undefined}
+                    />
+                  </Flaggable>
+                </Editable>
+              </div>
+            )}
+
+            {selectedGoal && learningStep >= 4.1 && (editingMode || userRating !== null) && (
+              <div data-step="4.1">
+                <Editable elementId="step-4.1" elementLabel="Step 4.1: Puck explains probabilistic" editingMode={editingMode} isHighlighted={highlightedElement === 'step-4.1'}>
+                  <Flaggable elementId="step-4.1" elementLabel="Step 4.1: Puck explains probabilistic" testingMode={testingMode && !editingMode} feedback={feedbackData['step-4.1']} onFeedbackChange={handleFeedbackChange}>
+                    <StorySection
+                      imageSide="right"
+                      faceId="puck_explaining"
+                      text={
+                        userRating !== null && userRating >= 4
+                          ? "...that's a common assumption! But LLMs are probabilistic - like rolling dice, not following a recipe. Let me show you why..."
+                          : userRating === 3 || userRating === null
+                          ? "... you're right to be uncertain! LLMs are probabilistic - they involve chance. Let me show you why..."
+                          : "Precisely! They're probabilistic - involving chance and randomness. Let me show you exactly why..."
+                      }
+                      onClick={!editingMode && learningStep === 4.1 ? handleStoryNext : undefined}
+                      onGlossaryTermClick={openGlossaryAtTerm}
+                    />
+                  </Flaggable>
+                </Editable>
+              </div>
+            )}
+
+            {/* Step 5: Continue explanation - always explain tokens */}
+            {selectedGoal && learningStep >= 5 && (
+              <div data-step="5">
+                <Editable elementId="step-5" elementLabel="Step 5: Puck introduces tokens" editingMode={editingMode} isHighlighted={highlightedElement === 'step-5'}>
+                  <Flaggable elementId="step-5" elementLabel="Step 5: Puck introduces tokens" testingMode={testingMode && !editingMode} feedback={feedbackData['step-5']} onFeedbackChange={handleFeedbackChange}>
+                    <StorySection
+                      imageSide="right"
+                      faceId="puck_explaining"
+                      text="To understand this, we first need to talk about 'tokens'..."
+                      onClick={!editingMode && learningStep === 5 ? handleStoryNext : undefined}
+                      onGlossaryTermClick={openGlossaryAtTerm}
+                    />
+                  </Flaggable>
+                </Editable>
+              </div>
+            )}
+
+            {selectedGoal && learningStep >= 5.1 && (
+              <div data-step="5.1">
+                <Editable elementId="step-5.1" elementLabel="Step 5.1: Spezi asks about tokens" editingMode={editingMode} isHighlighted={highlightedElement === 'step-5.1'}>
+                  <Flaggable elementId="step-5.1" elementLabel="Step 5.1: Spezi asks about tokens" testingMode={testingMode && !editingMode} feedback={feedbackData['step-5.1']} onFeedbackChange={handleFeedbackChange}>
+                    <StorySection
+                      imageSide="left"
+                      faceId="spezi_confused"
+                      text="Tokens? Never heard of them."
+                      onClick={!editingMode && learningStep === 5.1 ? handleStoryNext : undefined}
+                      onGlossaryTermClick={openGlossaryAtTerm}
+                    />
+                  </Flaggable>
+                </Editable>
+              </div>
+            )}
+
+            {/* Step 6: Token Explanation Section - always show */}
+            {selectedGoal && learningStep >= 6 && (
+              <div data-step="6">
+                <Editable elementId="step-6" elementLabel="Step 6: Token Explanation" editingMode={editingMode} isHighlighted={highlightedElement === 'step-6'}>
+                  <Flaggable elementId="step-6" elementLabel="Step 6: Token Explanation" testingMode={testingMode && !editingMode} feedback={feedbackData['step-6']} onFeedbackChange={handleFeedbackChange}>
+                    <ExplanationSection
+                      title="Understanding Tokens"
+                      content={[
+                        "Tokens are the building blocks of AI-generated text. Think of them as small pieces of text - they could be words, parts of words, or even punctuation marks.",
+                        "When an AI model generates text, it doesn't write entire sentences at once. Instead, it predicts one token at a time, choosing the most likely next token based on what came before.",
+                        "Each token has a probability - a likelihood of being selected. The AI calculates these probabilities and makes choices, just like you're about to do in our interactive simulator!"
+                      ]}
+                      visual={<TokenVisual />}
+                      onGlossaryTermClick={openGlossaryAtTerm}
+                    />
+                  </Flaggable>
+                </Editable>
+                {!editingMode && learningStep === 6 && (
                   <button
                     onClick={handleStoryNext}
                     className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors mt-4"
@@ -321,122 +455,31 @@ function ContentPageContent() {
               </div>
             )}
 
-            {/* Step 4: Puck introduces tokens */}
-            {selectedGoal && learningStep >= 4 && (
-              <div data-step="4">
-                <Editable elementId="step-4" elementLabel="Step 4: Puck introduces tokens" editingMode={editingMode} isHighlighted={highlightedElement === 'step-4'}>
-                  <Flaggable elementId="step-4" elementLabel="Step 4: Puck introduces tokens" testingMode={testingMode && !editingMode} feedback={feedbackData['step-4']} onFeedbackChange={handleFeedbackChange}>
-                    <StorySection
-                      imageSide="right"
-                      faceId="puck_explaining"
-                      text="As you can see, trust varies. But to understand why AI behaves this way, we need to start with the basics: tokens."
-                      onClick={!editingMode && learningStep === 4 ? handleStoryNext : undefined}
-                    />
-                  </Flaggable>
-                </Editable>
-              </div>
-            )}
-
-            {/* Step 4.1: Spezi asks about tokens */}
-            {selectedGoal && learningStep >= 4.1 && (
-              <div data-step="4.1">
-                <Editable elementId="step-4.1" elementLabel="Step 4.1: Spezi asks about tokens" editingMode={editingMode} isHighlighted={highlightedElement === 'step-4.1'}>
-                  <Flaggable elementId="step-4.1" elementLabel="Step 4.1: Spezi asks about tokens" testingMode={testingMode && !editingMode} feedback={feedbackData['step-4.1']} onFeedbackChange={handleFeedbackChange}>
-                    <StorySection
-                      imageSide="left"
-                      faceId="spezi_curious"
-                      text="Tokens? Like... cryptocurrency?"
-                      onClick={!editingMode && learningStep === 4.1 ? handleStoryNext : undefined}
-                    />
-                  </Flaggable>
-                </Editable>
-              </div>
-            )}
-
-            {/* Step 5: Token explanation */}
-            {selectedGoal && learningStep >= 5 && (
-              <div data-step="5">
-                <Editable elementId="step-5" elementLabel="Step 5: Token Explanation" editingMode={editingMode} isHighlighted={highlightedElement === 'step-5'}>
-                  <Flaggable elementId="step-5" elementLabel="Step 5: Token Explanation" testingMode={testingMode && !editingMode} feedback={feedbackData['step-5']} onFeedbackChange={handleFeedbackChange}>
-                    <ExplanationSection
-                      title="What are Tokens?"
-                      content={[
-                        "No, not that kind of token! In AI, a token is a piece of text - usually a word or part of a word.",
-                        "For example, 'understanding' might be split into 'under' and 'standing', or 'ChatGPT' might be one token.",
-                        "AI doesn't see whole sentences like we do. It breaks everything down into these tokens first."
-                      ]}
-                      onGlossaryTermClick={openGlossaryAtTerm}
-                    />
-                    {!editingMode && learningStep === 5 && (
-                      <button onClick={handleStoryNext} className="mt-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">Continue</button>
-                    )}
-                  </Flaggable>
-                </Editable>
-              </div>
-            )}
-
-            {/* Step 5.1: Spezi understanding */}
-            {selectedGoal && learningStep >= 5.1 && (
-              <div data-step="5.1">
-                <Editable elementId="step-5.1" elementLabel="Step 5.1: Spezi understanding" editingMode={editingMode} isHighlighted={highlightedElement === 'step-5.1'}>
-                  <Flaggable elementId="step-5.1" elementLabel="Step 5.1: Spezi understanding" testingMode={testingMode && !editingMode} feedback={feedbackData['step-5.1']} onFeedbackChange={handleFeedbackChange}>
-                    <StorySection
-                      imageSide="left"
-                      faceId="spezi_understanding"
-                      text="Oh, so it's like... breaking sentences into building blocks?"
-                      onClick={!editingMode && learningStep === 5.1 ? handleStoryNext : undefined}
-                    />
-                  </Flaggable>
-                </Editable>
-              </div>
-            )}
-
-            {/* Step 6: Token visual */}
-            {selectedGoal && learningStep >= 6 && (
-              <div data-step="6">
-                <Editable elementId="step-6" elementLabel="Step 6: Token Visual" editingMode={editingMode} isHighlighted={highlightedElement === 'step-6'}>
-                  <Flaggable elementId="step-6" elementLabel="Step 6: Token Visual" testingMode={testingMode && !editingMode} feedback={feedbackData['step-6']} onFeedbackChange={handleFeedbackChange}>
-                    <ExplanationSection
-                      title="Visualizing Tokens"
-                      content={[
-                        "Exactly! Here's how a sentence gets tokenized:",
-                      ]}
-                      visual={<TokenVisual />}
-                      onGlossaryTermClick={openGlossaryAtTerm}
-                    />
-                    {!editingMode && learningStep === 6 && (
-                      <button onClick={handleStoryNext} className="mt-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">Continue</button>
-                    )}
-                  </Flaggable>
-                </Editable>
-              </div>
-            )}
-
-            {/* Step 6.1: Spezi asks how AI chooses */}
             {selectedGoal && learningStep >= 6.1 && (
               <div data-step="6.1">
-                <Editable elementId="step-6.1" elementLabel="Step 6.1: Spezi asks how AI chooses" editingMode={editingMode} isHighlighted={highlightedElement === 'step-6.1'}>
-                  <Flaggable elementId="step-6.1" elementLabel="Step 6.1: Spezi asks how AI chooses" testingMode={testingMode && !editingMode} feedback={feedbackData['step-6.1']} onFeedbackChange={handleFeedbackChange}>
+                <Editable elementId="step-6.1" elementLabel="Step 6.1: Puck asks about token selection" editingMode={editingMode} isHighlighted={highlightedElement === 'step-6.1'}>
+                  <Flaggable elementId="step-6.1" elementLabel="Step 6.1: Puck asks about token selection" testingMode={testingMode && !editingMode} feedback={feedbackData['step-6.1']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
-                      imageSide="left"
-                      faceId="spezi_curious"
-                      text="Okay, but how does the AI decide which token comes next?"
+                      imageSide="right"
+                      faceId="puck_asking"
+                      text="Now, here's the key: how does the AI choose which token comes next?"
                       onClick={!editingMode && learningStep === 6.1 ? handleStoryNext : undefined}
+                      onGlossaryTermClick={openGlossaryAtTerm}
                     />
                   </Flaggable>
                 </Editable>
               </div>
             )}
 
-            {/* Step 7: Puck explains prediction */}
+            {/* Step 7: Probability Distribution Explanation - always show */}
             {selectedGoal && learningStep >= 7 && (
               <div data-step="7">
-                <Editable elementId="step-7" elementLabel="Step 7: Puck explains prediction" editingMode={editingMode} isHighlighted={highlightedElement === 'step-7'}>
-                  <Flaggable elementId="step-7" elementLabel="Step 7: Puck explains prediction" testingMode={testingMode && !editingMode} feedback={feedbackData['step-7']} onFeedbackChange={handleFeedbackChange}>
+                <Editable elementId="step-7" elementLabel="Step 7: Spezi guesses" editingMode={editingMode} isHighlighted={highlightedElement === 'step-7'}>
+                  <Flaggable elementId="step-7" elementLabel="Step 7: Spezi guesses" testingMode={testingMode && !editingMode} feedback={feedbackData['step-7']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
-                      imageSide="right"
-                      faceId="puck_explaining"
-                      text="Great question! The AI predicts the next token based on all the tokens it has seen so far. It's like autocomplete, but much more sophisticated."
+                      imageSide="left"
+                      faceId="spezi_confused"
+                      text="I assume it just picks the most likely word?"
                       onClick={!editingMode && learningStep === 7 ? handleStoryNext : undefined}
                       onGlossaryTermClick={openGlossaryAtTerm}
                     />
@@ -445,16 +488,16 @@ function ContentPageContent() {
               </div>
             )}
 
-            {/* Step 7.1: Spezi asks if it picks most likely */}
             {selectedGoal && learningStep >= 7.1 && (
               <div data-step="7.1">
-                <Editable elementId="step-7.1" elementLabel="Step 7.1: Spezi asks if it picks most likely" editingMode={editingMode} isHighlighted={highlightedElement === 'step-7.1'}>
-                  <Flaggable elementId="step-7.1" elementLabel="Step 7.1: Spezi asks if it picks most likely" testingMode={testingMode && !editingMode} feedback={feedbackData['step-7.1']} onFeedbackChange={handleFeedbackChange}>
+                <Editable elementId="step-7.1" elementLabel="Step 7.1: Puck introduces probability" editingMode={editingMode} isHighlighted={highlightedElement === 'step-7.1'}>
+                  <Flaggable elementId="step-7.1" elementLabel="Step 7.1: Puck introduces probability" testingMode={testingMode && !editingMode} feedback={feedbackData['step-7.1']} onFeedbackChange={handleFeedbackChange}>
                     <StorySection
-                      imageSide="left"
-                      faceId="spezi_curious"
-                      text="So it just picks the most likely token every time?"
-                      onClick={!editingMode && learningStep === 7.1 ? () => setLearningStep(7.2) : undefined}
+                      imageSide="right"
+                      faceId="puck_pointing"
+                      text="Not quite! It uses something called a probability distribution. Let me show you with a visual..."
+                      onClick={!editingMode && learningStep === 7.1 ? handleStoryNext : undefined}
+                      onGlossaryTermClick={openGlossaryAtTerm}
                     />
                   </Flaggable>
                 </Editable>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import SkillTree from '@/components/SkillTree';
 import { useRouter } from 'next/navigation';
 
-export default function LearningJourneyPage() {
+export default function LearningPathPage() {
   const router = useRouter();
   const [completedNodes, setCompletedNodes] = useState<string[]>([]);
   const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
@@ -13,12 +13,12 @@ export default function LearningJourneyPage() {
 
   const handleStartGoal = (nodeId: string) => {
     // Navigate to content page with the selected goal
-    router.push(`/content?goal=${nodeId}`);
+    router.push(`/content?goal=${nodeId}${testingMode ? '&testing=true' : ''}`);
   };
 
   const handleChallengeGoal = (nodeId: string) => {
     // Navigate to content page in challenge mode
-    router.push(`/content?goal=${nodeId}&challenge=true`);
+    router.push(`/content?goal=${nodeId}&challenge=true${testingMode ? '&testing=true' : ''}`);
   };
 
   const handleToggleNodeComplete = (nodeId: string) => {
@@ -45,15 +45,6 @@ export default function LearningJourneyPage() {
       {/* Top Navigation Bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Home
-          </button>
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
             Learning Path
           </h1>

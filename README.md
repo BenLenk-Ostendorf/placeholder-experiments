@@ -11,7 +11,7 @@ This platform enables:
 
 ## Key Features
 
-### 🎯 Learning Journey
+### 🎯 Learning Path
 - **Interactive Skill Tree** - Visual learning path to navigate through learning nuggets.
 - **Certificate Paths** - Structured learning goals leading to certificates (currently placeholders)
 - **Multiple Learning Formats**:
@@ -96,8 +96,8 @@ This prototype uses mock data and does not require any environment configuration
 placeholder-experiments/
 ├── src/
 │   ├── app/                      # Next.js App Router pages
-│   │   ├── page.tsx              # Landing page with navigation
-│   │   ├── learning-journey/     # Skill tree and learning paths
+│   │   ├── page.tsx              # Redirects to /learning-path
+│   │   ├── learning-path/        # Skill tree and learning paths (main page)
 │   │   ├── content/              # Learning content viewer
 │   │   └── admin/                # Admin panel
 │   ├── components/               # React components
@@ -201,7 +201,7 @@ See [Learning Goals Guide](docs/LEARNING_GOALS_GUIDE.md) for detailed schema doc
 ## Usage
 
 ### For Students
-1. Navigate to **Learning Journey** from the home page
+1. Open the app — you start directly on the **Learning Path**
 2. Explore the skill tree and select a learning goal
 3. Choose your preferred learning format
 4. Complete the interactive content

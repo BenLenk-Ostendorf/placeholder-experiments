@@ -108,6 +108,18 @@ A **Course Goal** (also called a **Certificate**) is the highest-level education
 
 ---
 
+## Pages / Navigation
+
+| Page | Route | Description |
+|------|-------|-------------|
+| **Learning Path** | `/learning-path` (also `/`) | The main page. Displays the interactive skill tree where users select learning goals. This is the default landing page. |
+| **Content** | `/content` | Displays the learning nugget content for a selected goal. Accessed by clicking a goal on the Learning Path. |
+| **Admin** | `/admin` | The admin panel for managing content, feedback, publishing, and learning goals. |
+
+**Important:** The main page is called **"Learning Path"**, not "Learning Journey" or "Home". There is no separate home page — `/` redirects to `/learning-path`.
+
+---
+
 ## Admin Panel Tabs
 
 | Tab | Purpose |
@@ -116,4 +128,14 @@ A **Course Goal** (also called a **Certificate**) is the highest-level education
 | **Learning Goals** | Manage skill tree nodes and their relationships |
 | **Assessment** | Edit quiz questions for nuggets |
 | **Publishing** | Control nugget visibility and distribution |
+
+---
+
+## Testing Mode
+
+**Testing Mode** is a toggle available in the top navigation bar (flag icon). When enabled, it allows testers to:
+- Flag content issues and provide feedback on specific elements
+- Artificially complete nuggets to test the full flow without going through all content
+
+Testing Mode is distinct from the Admin Panel — it is designed for partner institutions reviewing content in-context.
 
