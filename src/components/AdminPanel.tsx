@@ -13,6 +13,7 @@ interface FeedbackEntry {
   timestamp: string;
   university: string;
   status: 'new' | 'solved' | 'rejected';
+  rating?: 1 | 2 | 3 | 4 | 5; // Smiley rating: 1=very bad, 5=very good
 }
 
 // Quiz interfaces
@@ -226,6 +227,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 10:30',
     university: 'TU München',
     status: 'new',
+    rating: 4,
   },
   {
     id: '2',
@@ -237,6 +239,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 11:15',
     university: 'RWTH Aachen',
     status: 'new',
+    rating: 3,
   },
   {
     id: '3',
@@ -248,6 +251,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 12:00',
     university: 'Universität Tübingen',
     status: 'new',
+    rating: 4,
   },
   {
     id: '4',
@@ -259,6 +263,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 14:20',
     university: 'DHBW Heilbronn',
     status: 'solved',
+    rating: 5,
   },
   {
     id: '5',
@@ -270,6 +275,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 15:45',
     university: 'HHU Düsseldorf',
     status: 'new',
+    rating: 4,
   },
   {
     id: '6',
@@ -281,6 +287,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-27 16:30',
     university: 'FernUni Hagen',
     status: 'rejected',
+    rating: 3,
   },
   {
     id: '7',
@@ -292,6 +299,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-26 09:00',
     university: 'DFKI',
     status: 'new',
+    rating: 4,
   },
   {
     id: '8',
@@ -303,6 +311,7 @@ const initialFeedbackData: FeedbackEntry[] = [
     timestamp: '2026-01-26 11:30',
     university: 'Stifterverband',
     status: 'new',
+    rating: 2,
   },
 ];
 
@@ -318,6 +327,7 @@ interface AdminPanelProps {
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<'feedback' | 'nuggets' | 'publishing' | 'learningGoals' | 'assessment'>('feedback');
+  const [feedbackSubTab, setFeedbackSubTab] = useState<'feedback' | 'ratings'>('feedback');
   const [filterFlag, setFilterFlag] = useState<string | null>(null);
   const [filterObjective, setFilterObjective] = useState<string | null>(null);
   const [filterUniversity, setFilterUniversity] = useState<string | null>(null);
@@ -407,6 +417,46 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   // Update feedback status
   const updateFeedbackStatus = (feedbackId: string, status: FeedbackEntry['status']) => {
     setFeedbackData(feedbackData.map(f => f.id === feedbackId ? { ...f, status } : f));
+  };
+  
+  // Helper function to get smiley emoji for rating
+  const getRatingEmoji = (rating: number): string => {
+    if (rating >= 4.5) return '😄'; // Very happy
+    if (rating >= 3.5) return '🙂'; // Happy
+    if (rating >= 2.5) return '😐'; // Neutral
+    if (rating >= 1.5) return '🙁'; // Sad
+    return '😞'; // Very sad
+  };
+  
+  // Calculate average ratings per nugget
+  const calculateNuggetRatings = () => {
+    const nuggetGroups: Record<string, { ratings: number[]; objective: string; nugget: string }> = {};
+    
+    feedbackData.forEach(entry => {
+      if (entry.rating) {
+        const key = `${entry.learningObjective}|${entry.nugget}`;
+        if (!nuggetGroups[key]) {
+          nuggetGroups[key] = {
+            ratings: [],
+            objective: entry.learningObjective,
+            nugget: entry.nugget
+          };
+        }
+        nuggetGroups[key].ratings.push(entry.rating);
+      }
+    });
+    
+    return Object.entries(nuggetGroups).map(([key, data]) => {
+      const average = data.ratings.reduce((sum, r) => sum + r, 0) / data.ratings.length;
+      return {
+        key,
+        objective: data.objective,
+        nugget: data.nugget,
+        averageRating: average,
+        count: data.ratings.length,
+        emoji: getRatingEmoji(average)
+      };
+    }).sort((a, b) => a.averageRating - b.averageRating); // Sort by rating (lowest first)
   };
   
   // Navigate from Feedback tab to Nuggets tab with specific element highlighted
@@ -684,6 +734,33 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
       <div className="flex-1 overflow-y-auto p-6">
         {activeTab === 'feedback' && (
           <div className="space-y-4">
+            {/* Sub-tab Toggle */}
+            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-4">
+              <button
+                onClick={() => setFeedbackSubTab('feedback')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  feedbackSubTab === 'feedback'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                💬 Feedback Details
+              </button>
+              <button
+                onClick={() => setFeedbackSubTab('ratings')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  feedbackSubTab === 'ratings'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                ⭐ Average Ratings
+              </button>
+            </div>
+
+            {/* Feedback Details View */}
+            {feedbackSubTab === 'feedback' && (
+            <>
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
               <div>
@@ -850,6 +927,117 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </table>
               </div>
             </div>
+            </>
+            )}
+
+            {/* Ratings Summary View */}
+            {feedbackSubTab === 'ratings' && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">ℹ️</span>
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                        Average Nugget Ratings
+                      </p>
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        These ratings are collected from the smiley evaluation at the end of each learning nugget. Ratings range from 1 (😞 very bad) to 5 (😄 very good).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          Learning Objective
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          Nugget Type
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          Average Rating
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          Responses
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                          Sentiment
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {calculateNuggetRatings().map((rating) => {
+                        const ratingColor = 
+                          rating.averageRating >= 4.5 ? 'text-green-600 dark:text-green-400' :
+                          rating.averageRating >= 3.5 ? 'text-blue-600 dark:text-blue-400' :
+                          rating.averageRating >= 2.5 ? 'text-yellow-600 dark:text-yellow-400' :
+                          rating.averageRating >= 1.5 ? 'text-orange-600 dark:text-orange-400' :
+                          'text-red-600 dark:text-red-400';
+                        
+                        const bgColor = 
+                          rating.averageRating >= 4.5 ? 'bg-green-50 dark:bg-green-900/20' :
+                          rating.averageRating >= 3.5 ? 'bg-blue-50 dark:bg-blue-900/20' :
+                          rating.averageRating >= 2.5 ? 'bg-yellow-50 dark:bg-yellow-900/20' :
+                          rating.averageRating >= 1.5 ? 'bg-orange-50 dark:bg-orange-900/20' :
+                          'bg-red-50 dark:bg-red-900/20';
+
+                        return (
+                          <tr key={rating.key} className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 ${bgColor}`}>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white font-medium">
+                              {rating.objective}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                              {rating.nugget}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                <span className={`text-2xl font-bold ${ratingColor}`}>
+                                  {rating.averageRating.toFixed(2)}
+                                </span>
+                                <div className="flex gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <span
+                                      key={star}
+                                      className={`text-sm ${
+                                        star <= Math.round(rating.averageRating)
+                                          ? 'text-yellow-400'
+                                          : 'text-gray-300 dark:text-gray-600'
+                                      }`}
+                                    >
+                                      ⭐
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                {rating.count} {rating.count === 1 ? 'response' : 'responses'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-3xl" title={`Average: ${rating.averageRating.toFixed(2)}`}>
+                                {rating.emoji}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  
+                  {calculateNuggetRatings().length === 0 && (
+                    <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                      <p className="text-sm">No ratings data available yet.</p>
+                      <p className="text-xs mt-1">Ratings will appear here once users complete nuggets and provide feedback.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -867,14 +1055,22 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Title</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Nuggets</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {learningGoals.map(goal => {
                       const nuggets = nuggetsPerGoal[goal.id] || [];
                       return (
-                        <tr key={goal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                        <tr 
+                          key={goal.id} 
+                          onClick={() => {
+                            setSelectedGoalId(goal.id);
+                            setSelectedNuggetId(null);
+                            setNuggetElements([]);
+                            setIsCreatingNew(false);
+                          }}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
+                        >
                           <td className="px-4 py-3">
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">{goal.title}</p>
@@ -892,19 +1088,6 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                             }`}>
                               {goal.hasContent ? 'Has Content' : 'Placeholder'}
                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => {
-                                setSelectedGoalId(goal.id);
-                                setSelectedNuggetId(null);
-                                setNuggetElements([]);
-                                setIsCreatingNew(false);
-                              }}
-                              className="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 rounded"
-                            >
-                              Select
-                            </button>
                           </td>
                         </tr>
                       );
