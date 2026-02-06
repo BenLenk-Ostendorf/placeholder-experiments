@@ -122,11 +122,11 @@ interface NuggetItem {
 
 // Mock learning goals from skill tree
 const learningGoals = [
-  { id: 'ai-text-generation', title: 'Understanding How AI Produces Text' },
-  { id: 'ai-ethics', title: 'AI Ethics Fundamentals' },
-  { id: 'prompt-basics', title: 'Prompt Engineering Basics' },
-  { id: 'ai-limitations', title: 'Understanding AI Limitations' },
-  { id: 'ai-bias', title: 'Recognizing AI Bias' },
+  { id: 'ai-text-generation', title: 'Understanding How AI Produces Text', description: 'Learn the fundamentals of how AI generates human-like text', hasContent: true },
+  { id: 'ai-ethics', title: 'AI Ethics Fundamentals', description: 'Explore ethical considerations in AI development and deployment', hasContent: false },
+  { id: 'prompt-basics', title: 'Prompt Engineering Basics', description: 'Master the art of crafting effective prompts for AI systems', hasContent: false },
+  { id: 'ai-limitations', title: 'Understanding AI Limitations', description: 'Understand what AI can and cannot do', hasContent: false },
+  { id: 'ai-bias', title: 'Recognizing AI Bias', description: 'Learn to identify and mitigate bias in AI systems', hasContent: false },
 ];
 
 // Character emotions with available images from public/resources/faces/

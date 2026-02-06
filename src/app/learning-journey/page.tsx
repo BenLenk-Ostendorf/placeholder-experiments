@@ -96,6 +96,7 @@ export default function LearningJourneyPage() {
           completedNodes={completedNodes}
           onStartGoal={handleStartGoal}
           onChallengeGoal={handleChallengeGoal}
+          debugMode={false}
           onToggleNodeComplete={handleToggleNodeComplete}
           selectedCertificate={selectedCertificate}
           onSelectCertificate={handleSelectCertificate}

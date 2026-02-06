@@ -2,11 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import StorySection from '@/components/StorySection';
 import TrustSurvey from '@/components/TrustSurvey';
 import TrustAnalysis from '@/components/TrustAnalysis';
 import LearningResources from '@/components/LearningResources';
 import TokenSimulator from '@/components/TokenSimulator';
+import StorySection from '@/components/StorySection';
 import ExplanationSection from '@/components/ExplanationSection';
 import TokenVisual from '@/components/TokenVisual';
 import SpinnerVisual from '@/components/SpinnerVisual';
@@ -365,9 +365,11 @@ function ContentPageContent() {
                         "For example, 'understanding' might be split into 'under' and 'standing', or 'ChatGPT' might be one token.",
                         "AI doesn't see whole sentences like we do. It breaks everything down into these tokens first."
                       ]}
-                      onClick={!editingMode && learningStep === 5 ? handleStoryNext : undefined}
                       onGlossaryTermClick={openGlossaryAtTerm}
                     />
+                    {!editingMode && learningStep === 5 && (
+                      <button onClick={handleStoryNext} className="mt-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">Continue</button>
+                    )}
                   </Flaggable>
                 </Editable>
               </div>
@@ -400,9 +402,11 @@ function ContentPageContent() {
                         "Exactly! Here's how a sentence gets tokenized:",
                       ]}
                       visual={<TokenVisual />}
-                      onClick={!editingMode && learningStep === 6 ? handleStoryNext : undefined}
                       onGlossaryTermClick={openGlossaryAtTerm}
                     />
+                    {!editingMode && learningStep === 6 && (
+                      <button onClick={handleStoryNext} className="mt-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">Continue</button>
+                    )}
                   </Flaggable>
                 </Editable>
               </div>
@@ -434,7 +438,6 @@ function ContentPageContent() {
                       faceId="puck_explaining"
                       text="Great question! The AI predicts the next token based on all the tokens it has seen so far. It's like autocomplete, but much more sophisticated."
                       onClick={!editingMode && learningStep === 7 ? handleStoryNext : undefined}
-                      visual={<SpinnerVisual />}
                       onGlossaryTermClick={openGlossaryAtTerm}
                     />
                   </Flaggable>
