@@ -2,7 +2,7 @@
   "learningGoals": [
     {
       "id": "ai-text-generation",
-      "title": "How AI Produces Text",
+      "title": "How AI Generates Text",
       "description": "Learn the fundamentals of how AI generates human-like text",
       "hint": "Discover how AI models use tokens and probability distributions to generate text. You'll learn why the same prompt can give different results!",
       "prerequisites": [],
@@ -42,7 +42,7 @@
     },
     {
       "id": "context-window",
-      "title": "Context Window Limits",
+      "title": "Context Window Limitations",
       "description": "Understanding AI memory limitations",
       "hint": "Learn about the context window - how much text an AI can \"remember\" during a conversation and why it matters.",
       "prerequisites": ["ai-text-generation"],
